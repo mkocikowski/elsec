@@ -8,26 +8,46 @@ import esclient.http
 import esclient.templates
 
 
+def get_indices(host):
+    url = "http://%s/_settings" % (host, )
+    status, reason, data = esclient.http.get(url)
+    indices = json.loads(data).keys()
+    return indices
+
+
+def get_aliases(host):
+    url = "http://%s/_aliases" % (host, )
+    status, reason, data = esclient.http.get(url)
+    indices = json.loads(data)
+    aliases = dict()
+    for i in indices:
+        for a in indices[i]['aliases']:
+            aliases.setdefault(a, set()).add(i)
+    aliases = {k: sorted(v) for k, v in aliases.items()}
+    return aliases
+
 
 def get_mappings(host, index): 
     url = "http://%s/%s/_mapping" % (host, index)
+    curl = "curl -XGET '%s'" % (url,)
     status, reason, data = esclient.http.get(url)    
-    mappings = dict()
-    for m in json.loads(data).values():
-        mappings.update(m)
-    return mappings
+#     mappings = dict()
+#     for m in json.loads(data).values():
+#         mappings.update(m)
+#     return (curl, url, None, mappings)
+    return (curl, url, None, json.loads(data))
 
 
-def get_fields(mappings):
-    def _dot_collapse(pre, d): 
-        for k in d.keys():
-            try: 
-                ps = "%s.%s" % (pre, k) if pre else k
-                for f in _dot_collapse(ps, d[k]['properties']): 
-                    yield f
-            except KeyError:
-                yield ("%s.%s" % (pre, k), d[k]['type'])
-    return _dot_collapse("", mappings)
+# def get_fields(mappings):
+#     def _dot_collapse(pre, d): 
+#         for k in d.keys():
+#             try: 
+#                 ps = "%s.%s" % (pre, k) if pre else k
+#                 for f in _dot_collapse(ps, d[k]['properties']): 
+#                     yield f
+#             except KeyError:
+#                 yield ("%s.%s" % (pre, k), d[k]['type'])
+#     return _dot_collapse("", mappings)
 
 
 def _prepare_request(query):

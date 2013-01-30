@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 completions = {
     'fields': [], 
     'hits': [], 
-    'commands': ['search', 'count', 'view', 'exit', 'help'], 
+    'commands': ['search', 'count', 'view', 'exit', 'help', 'types', 'fields'], 
 }
 
 # http://www.doughellmann.com/PyMOTW/readline/
@@ -64,13 +64,20 @@ def parse(host, index, line):
 
     elif command == 'view': 
         for p in params:
-            docs = [(d['_type'], d['_id']) for 
+            docs = [(d['_index'], d['_type'], d['_id']) for 
                 d in completions['hits'] if 
                 d['_id'] == p]
             for d in docs:
                 curl, url, request, response = \
-                    esclient.actions.do_view(host, index, d[0], d[1])
+                    esclient.actions.do_view(host, d[0], d[1], d[2])
                 _output(curl, response)
+    
+    elif command == 'types':
+        curl, url, request, response = esclient.actions.get_mappings(host, index)
+        _output(curl, response)
+
+    elif command == 'fields':
+        esclient.client.output(sorted(completions['fields']))
     
     elif command == 'help':
         esclient.client.output(esclient.help.OVERVIEW)

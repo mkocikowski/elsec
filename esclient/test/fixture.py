@@ -14,6 +14,9 @@ esclient.http.delete("http://localhost:9200/index_2")
 esclient.http.put("http://localhost:9200/index_1/", """{"settings": {"index": {"number_of_replicas": 0, "number_of_shards": 1}}}""")
 esclient.http.put("http://localhost:9200/index_2/", """{"settings": {"index": {"number_of_replicas": 0, "number_of_shards": 1}}}""")
 
+# create an alias which joins the two indices
+esclient.http.post("http://localhost:9200/_aliases/", """{"actions": [{ "add" : {"index": "index_1", "alias": "alias_1" } }, {"add": {"index": "index_2", "alias": "alias_1" }}, {"add": {"index": "index_1", "alias": "alias_2" }}]}""")
+
 # populate with test documents
 esclient.http.put("http://localhost:9200/index_1/doctype_1/1", json.dumps({'field_1': 'in1, dt1', 'field_2': 'value 1', }))
 esclient.http.put("http://localhost:9200/index_1/doctype_1/2", json.dumps({'field_1': 'in1, dt1', 'field_2': 'value 2', }))

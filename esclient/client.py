@@ -45,6 +45,29 @@ def configure_readline():
     return
 
 
+def get_fieldnames(host, index):
+    def _dot_collapse(pre, d): 
+        for k in d.keys():
+            try: 
+                ps = "%s.%s" % (pre, k) if pre else k
+                for f in _dot_collapse(ps, d[k]['properties']): 
+                    yield f
+            except KeyError:
+                yield ("%s.%s" % (pre, k), d[k]['type'])
+    _, _, _, mappings = esclient.actions.get_mappings(host, index)
+    # the _mapping call returns a dictionary where keys are index names,
+    # and values are dictionaries where keys are mapping names and
+    # values are mappings. So if we are doing with a single index, it is
+    # simple; however, if we are dealing with an alias, which references
+    # multiple indices, we need to collapse the dictionary a bit, and
+    # this is what the following three lines do.
+    _temp = dict()
+    for m in mappings.values():
+        _temp.update(m)
+    fields = [f[0] for f in _dot_collapse("", _temp)]
+    return fields
+    
+
 def output(data):
     if type(data) in [str, unicode]:
         print(data)
@@ -55,8 +78,8 @@ def output(data):
 
 def get_args_parser():
     parser = argparse.ArgumentParser(description="ElasticSearch client.")
-    parser.add_argument('host', type=str)
-    parser.add_argument('index', type=str)
+    parser.add_argument('host', type=str, help="elasticsearch server address, including port")
+    parser.add_argument('index', type=str, nargs="?", help="name of the index")
     return parser
 
 
@@ -83,16 +106,27 @@ def main():
         logging.basicConfig()
 #         logging.basicConfig(filename="/Users/mik/dev/esclient/esclient/esc.log", level=logging.DEBUG)
         args = get_args_parser().parse_args()
-        mappings = esclient.actions.get_mappings(args.host, args.index)
-        fields = [f[0] for f in esclient.actions.get_fields(mappings)]
-        esclient.parser.completions['fields'] = sorted(fields)
+        if not args.index:
+            indices = esclient.actions.get_indices(args.host)
+            aliases = esclient.actions.get_aliases(args.host)
+            print("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
+            sys.exit(0)
+        esclient.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
         configure_readline()
+
+    except (TypeError, ValueError):
+        logger.error("Error initializing, check your connection parameters.", exc_info=True)
+        sys.exit(1)
+
+    except IOError:
+        logger.error("IO (network) error, check your connection parameters.", exc_info=True)
+        sys.exit(1)
+
+
+    try: 
         print ("Type 'help' for help. Exit with Control-D. ")
         input_loop(args.host, args.index)
 
-    except IOError as exc:
-        print("IO (network) error, check your connection parameters. \nError: %s" % (exc,))
-        sys.exit(1)
     
     except EOFError:
         _save_readline_history()
