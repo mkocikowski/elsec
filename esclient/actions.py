@@ -62,7 +62,12 @@ def do_search(host, index, query):
 
 def do_count(host, index, query): 
     request = _prepare_request(query)
-    qqs = request['query']
+    if 'query' in request:
+        qqs = request['query']
+    else:
+        # let's hope for the best, if the request is bum, we'll get an
+        # error from the ES
+        qqs = request
     url = "http://%s/%s/_count" % (host, index)
     curl = "curl -XPOST '%s' -d '%s'" % \
         (url, json.dumps(qqs, indent=4, sort_keys=True))
