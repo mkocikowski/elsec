@@ -11,5 +11,6 @@ command to complete document id.
 command takes document id/s as its input. 
 
 Don't worry, you won't break anything by using this tool! See full
-documentation, use examples, and a tutorial at "http://foo.bar/info"
+documentation, use examples, and a tutorial at: 
+"https://github.com/mkocikowski/esclient"
 """
