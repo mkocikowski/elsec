@@ -78,16 +78,22 @@ def input_loop(host, index):
 
 
 def main():
-    logging.basicConfig()
-#     logging.basicConfig(filename="/Users/mik/dev/esclient/esclient/esc.log", level=logging.DEBUG)
-    args = get_args_parser().parse_args()
-    mappings = esclient.actions.get_mappings(args.host, args.index)
-    fields = [f[0] for f in esclient.actions.get_fields(mappings)]
-    esclient.parser.completions['fields'] = sorted(fields)
-    configure_readline()
+
     try:
+        logging.basicConfig()
+#         logging.basicConfig(filename="/Users/mik/dev/esclient/esclient/esc.log", level=logging.DEBUG)
+        args = get_args_parser().parse_args()
+        mappings = esclient.actions.get_mappings(args.host, args.index)
+        fields = [f[0] for f in esclient.actions.get_fields(mappings)]
+        esclient.parser.completions['fields'] = sorted(fields)
+        configure_readline()
         print ("Type 'help' for help. Exit with Control-D. ")
         input_loop(args.host, args.index)
+
+    except IOError as exc:
+        print("IO (network) error, check your connection parameters. \nError: %s" % (exc,))
+        sys.exit(1)
+    
     except EOFError:
         _save_readline_history()
         print("Bye!")
