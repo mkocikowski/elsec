@@ -1,0 +1,16 @@
+.DS_Store
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info
+
+*.log
+*.tab
+*.sql
+*.txt
+*.json
+*.csv
+
+MANIFEST
+!README.txt
