@@ -1,18 +1,29 @@
 # -*- coding: utf-8 -*-
 
 # python setup.py -r http://testpypi.python.org/pypi register
+# python setup.py sdist upload -r http://testpypi.python.org/pypi
 
 from setuptools import setup
 
+ld = """
+The goal of the project is to provide an easy to use, interactive
+command line (terminal) client to Elasticsearch, with behavior similar
+to 'mysql' or 'psql' clients. The tool is to give a safe (read-only) way
+to explore data in ES indices, addressing use cases common among
+non-technical, non-administrator users. Anyone capable of using the
+mysql client to dig around a mysql database should be able to use the
+'elsec' to look at data in an ES index. 
+"""
+
 setup(
     name = 'elsec', 
-    version = '0.0.2', 
+    version = '0.0.3', 
     author = 'Mik Kocikowski', 
     author_email = 'mkocikowski@gmail.com', 
     url = 'https://github.com/mkocikowski/elsec', 
     description = 'Elasticsearch interactive command line client', 
-    long_description=open('README.md').read(),
-    packages = ['elsec', 'elsec.test'],
+    long_description=ld,
+    packages = ['elsec', 'elsec.test'], 
     entry_points = {
         'console_scripts': [
             'elsec = elsec.client:main', 
@@ -31,5 +42,3 @@ setup(
     ], 
     license = 'MIT',
 )
-
-
