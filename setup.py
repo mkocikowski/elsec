@@ -3,15 +3,15 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = 'esclient', 
+    name = 'elsec', 
     version = '0.0.2', 
     author = 'Mik Kocikowski', 
     author_email = 'mkocikowski@gmail.com', 
-    packages = ['esclient', 'esclient.test'],
+    packages = ['elsec', 'elsec.test'],
     long_description=open('README.md').read(),
     entry_points = {
         'console_scripts': [
-            'esclient = esclient.client:main', 
+            'elsec = elsec.client:main', 
         ]
     }, 
 

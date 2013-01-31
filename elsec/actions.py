@@ -4,20 +4,20 @@ import copy
 import json
 import traceback
 
-import esclient.http
-import esclient.templates
+import elsec.http
+import elsec.templates
 
 
 def get_indices(host):
     url = "http://%s/_settings" % (host, )
-    status, reason, data = esclient.http.get(url)
+    status, reason, data = elsec.http.get(url)
     indices = json.loads(data).keys()
     return indices
 
 
 def get_aliases(host):
     url = "http://%s/_aliases" % (host, )
-    status, reason, data = esclient.http.get(url)
+    status, reason, data = elsec.http.get(url)
     indices = json.loads(data)
     aliases = dict()
     for i in indices:
@@ -30,7 +30,7 @@ def get_aliases(host):
 def get_mappings(host, index): 
     url = "http://%s/%s/_mapping" % (host, index)
     curl = "curl -XGET '%s'" % (url,)
-    status, reason, data = esclient.http.get(url)    
+    status, reason, data = elsec.http.get(url)    
 #     mappings = dict()
 #     for m in json.loads(data).values():
 #         mappings.update(m)
@@ -63,9 +63,9 @@ def _prepare_request(query):
 
     # if there is trouble parsing, assume that the input is lucene query
     except ValueError: 
-        qqs = copy.deepcopy(esclient.templates.QQS)
+        qqs = copy.deepcopy(elsec.templates.QQS)
         qqs['query_string']['query'] = query
-        request = copy.deepcopy(esclient.templates.REQUEST)
+        request = copy.deepcopy(elsec.templates.REQUEST)
         request['query'] = qqs
     
     return request
@@ -76,7 +76,7 @@ def do_search(host, index, query):
     url = "http://%s/%s/_search" % (host, index)
     curl = "curl -XPOST '%s' -d '%s'" % \
         (url, json.dumps(request, indent=4, sort_keys=True))
-    status, reason, data = esclient.http.post(url, json.dumps(request))
+    status, reason, data = elsec.http.post(url, json.dumps(request))
     return (curl, url, request, json.loads(data))
 
 
@@ -91,13 +91,13 @@ def do_count(host, index, query):
     url = "http://%s/%s/_count" % (host, index)
     curl = "curl -XPOST '%s' -d '%s'" % \
         (url, json.dumps(qqs, indent=4, sort_keys=True))
-    status, reason, data = esclient.http.post(url, json.dumps(qqs))
+    status, reason, data = elsec.http.post(url, json.dumps(qqs))
     return (curl, url, qqs, json.loads(data))
 
 
 def do_view(host, index, mapping, docid):
     url = "http://%s/%s/%s/%s" % (host, index, mapping, docid)
     curl = "curl -XGET '%s'" % (url, )
-    status, reason, data = esclient.http.get(url)
+    status, reason, data = elsec.http.get(url)
     return (curl, url, None, json.loads(data))
 

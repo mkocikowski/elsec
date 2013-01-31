@@ -9,16 +9,16 @@ import json
 import traceback
 import logging
 
-import esclient.http
-import esclient.actions
-import esclient.parser
+import elsec.http
+import elsec.actions
+import elsec.parser
 
 
 logger = logging.getLogger(__name__)
 
 def _get_readline_history():
     try: 
-        fn = os.path.join(os.path.expanduser("~"), ".esclient_history")
+        fn = os.path.join(os.path.expanduser("~"), ".elsec_history")
         readline.read_history_file(fn)
     except IOError as exc:
         if exc.errno == errno.ENOENT:
@@ -29,7 +29,7 @@ def _get_readline_history():
 
 def _save_readline_history():
     try: 
-        fn = os.path.join(os.path.expanduser("~"), ".esclient_history")
+        fn = os.path.join(os.path.expanduser("~"), ".elsec_history")
         readline.set_history_length(20)
         readline.write_history_file(fn)
     except IOError as exc:
@@ -38,7 +38,7 @@ def _save_readline_history():
 
 def configure_readline():
     _get_readline_history()
-    readline.set_completer(esclient.parser.complete)
+    readline.set_completer(elsec.parser.complete)
     readline.parse_and_bind("tab: complete")
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")
@@ -54,7 +54,7 @@ def get_fieldnames(host, index):
                     yield f
             except KeyError:
                 yield ("%s.%s" % (pre, k), d[k]['type'])
-    _, _, _, mappings = esclient.actions.get_mappings(host, index)
+    _, _, _, mappings = elsec.actions.get_mappings(host, index)
     # the _mapping call returns a dictionary where keys are index names,
     # and values are dictionaries where keys are mapping names and
     # values are mappings. So if we are doing with a single index, it is
@@ -94,8 +94,9 @@ def input_loop(host, index):
             continue
         buffer += " " + line
         prompt = "> "
-        if (buffer.strip().split()[0].lower() not in ['search', 'count']) or (buffer.strip().endswith(";")):
-            esclient.parser.parse(host, index, buffer.strip(" ;\n\r\t"))
+        if buffer.strip().split()[0].lower() not in ['search', 'count'] or \
+                buffer.strip().endswith(";"):
+            elsec.parser.parse(host, index, buffer.strip(" ;\n\r\t"))
             buffer = ""
             prompt = None
 
@@ -104,14 +105,14 @@ def main():
 
     try:
         logging.basicConfig()
-#         logging.basicConfig(filename="/Users/mik/dev/esclient/esclient/esc.log", level=logging.DEBUG)
+#         logging.basicConfig(filename="/Users/mik/dev/elsec/elsec/esc.log", level=logging.DEBUG)
         args = get_args_parser().parse_args()
         if not args.index:
-            indices = esclient.actions.get_indices(args.host)
-            aliases = esclient.actions.get_aliases(args.host)
+            indices = elsec.actions.get_indices(args.host)
+            aliases = elsec.actions.get_aliases(args.host)
             print("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
             sys.exit(0)
-        esclient.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
+        elsec.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
         configure_readline()
 
     except (TypeError, ValueError):

@@ -1,34 +1,31 @@
 ## Elasticsearch interactive client
 
-NOT YET READY FOR PUBLIC CONSUMPTION, PORTING FROM BUSINESS-INTERNAL
-IMPLEMENTATION, WILL ANNOUNCE HERE WHEN 'READY', WHICH SHOULD BE SOON (BY THE
-END OF FEBRUARY 2013?).
+NOT YET READY FOR PUBLIC CONSUMPTION, CLEANING UP AND GENERALIZING USE CASES
+FROM IN-HOUSE HACKY THING, WILL ANNOUNCE HERE WHEN 'READY', WHICH SHOULD BE
+SOON (BY THE END OF FEBRUARY 2013?).
 
-The goal of the project is to provide an easy to use, interactive text-based
-(terminal) client to Elasticsearch, with behavior similar to 'mysql' or 'psql'
-clients. The tool is to give a safe (read-only) way to explore data in ES
-indices, addressing use cases common among non-technical, non-administrator
-users. Anyone capable of using the mysql client to dig around a mysql database
-should be able to use the esclient to look at data in an ES index.
+The goal of the project is to provide an easy to use, interactive
+command line (terminal) client to Elasticsearch, with behavior similar
+to 'mysql' or 'psql' clients. The tool is to give a safe (read-only) way
+to explore data in ES indices, addressing use cases common among
+non-technical, non-administrator users. Anyone capable of using the
+mysql client to dig around a mysql database should be able to use the
+'elsec' to look at data in an ES index. 
 
-Capabilities:
+The basic use case is to execute 'search' or 'count' requests based on Lucene
+query strings entered on the command line. Tab completion of field names is
+available, based on index mappings. 
 
-* execute 'search' and 'count' commands with Lucene query strings
-* use mapping data for field name TAB auto complete / mapping exploration
-* input and output data in JSON, copy/modify/paste & curl friendly
+All requests are echoed as curl calls, and so can easily be copied and
+executed outside the client (for debugging? sharing?) Any valid Elasticsearch
+search or count request can also be pasted into the client and executed (this
+is how you do complex queries).
 
-Thinking:
+This tool is not intended to be an admin interface, or a complex query
+builder. It is to be quick to learn and safe and easy to use, more of a spoon
+than a swiss army knife.
 
-* simple (tool for exploring indices and for exploring data in them)
-* safe (read only, no 'admin' tools)
-* familiar (similar in use to 'mysql' and 'psql')
 
-All commands are echoed as JSON curl calls, which can be copied, modified, and
-pasted back in, or run outside of the client. This allows users to
-incrementally build complex requests (not limited to Lucene query strings),
-with the benefit of feedback from the interactive environment. In my
-experience, this gives determined users enough to construct search and count
-requests to address all the use cases they can dream up. 
 
 ## License
 

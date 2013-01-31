@@ -4,8 +4,8 @@ import readline
 import logging
 import traceback
 
-import esclient.client
-import esclient.help
+import elsec.client
+import elsec.help
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +40,9 @@ def complete(text, state):
 
 
 def _output(request, response, separator=">"):
-    esclient.client.output(request)
-    esclient.client.output(">")
-    esclient.client.output(response)
+    elsec.client.output(request)
+    elsec.client.output(">")
+    elsec.client.output(response)
     
 
 def parse(host, index, line):
@@ -52,14 +52,14 @@ def parse(host, index, line):
 
     if command == 'search':
         curl, url, request, response = \
-            esclient.actions.do_search(host, index, " ".join(params))
+            elsec.actions.do_search(host, index, " ".join(params))
         if 'hits' in response:
             completions['hits'] = response['hits']['hits']
         _output(curl, response)
 
     elif command == 'count':
         curl, url, request, response = \
-            esclient.actions.do_count(host, index, " ".join(params))
+            elsec.actions.do_count(host, index, " ".join(params))
         _output(curl, response)
 
     elif command == 'view': 
@@ -69,18 +69,18 @@ def parse(host, index, line):
                 d['_id'] == p]
             for d in docs:
                 curl, url, request, response = \
-                    esclient.actions.do_view(host, d[0], d[1], d[2])
+                    elsec.actions.do_view(host, d[0], d[1], d[2])
                 _output(curl, response)
     
     elif command == 'types':
-        curl, url, request, response = esclient.actions.get_mappings(host, index)
+        curl, url, request, response = elsec.actions.get_mappings(host, index)
         _output(curl, response)
 
     elif command == 'fields':
-        esclient.client.output(sorted(completions['fields']))
+        elsec.client.output(sorted(completions['fields']))
     
     elif command == 'help':
-        esclient.client.output(esclient.help.OVERVIEW)
+        elsec.client.output(elsec.help.OVERVIEW)
 
     elif command == 'exit':
         raise EOFError()
