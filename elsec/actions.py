@@ -3,9 +3,14 @@
 import copy
 import json
 import traceback
+import logging
 
 import elsec.http
 import elsec.templates
+import elsec.exceptions
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_indices(host):
@@ -30,12 +35,11 @@ def get_aliases(host):
 def get_mappings(host, index): 
     url = "http://%s/%s/_mapping" % (host, index)
     curl = "curl -XGET '%s'" % (url,)
-    status, reason, data = elsec.http.get(url)    
-#     mappings = dict()
-#     for m in json.loads(data).values():
-#         mappings.update(m)
-#     return (curl, url, None, mappings)
-    return (curl, url, None, json.loads(data))
+    status, reason, data = elsec.http.get(url)
+    data = json.loads(data)
+    if 'error' in data:
+        raise elsec.exceptions.ESRequestError(data['status'], data['error'])
+    return (curl, url, None, data)
 
 
 # def get_fields(mappings):

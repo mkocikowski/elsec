@@ -7,6 +7,7 @@ import StringIO
 # import time
 
 import elsec.client
+import elsec.exceptions
 import elsec.test.fixture
 
 
@@ -60,9 +61,32 @@ bar
         
     
     def test_get_fieldnames(self):
+    
         result = elsec.client.get_fieldnames('localhost:9200', 'elsec_test_index_1')
         self.assertEqual(result, [u'doctype_2.field_2', u'doctype_2.field_1', 
             u'doctype_1.field_2', u'doctype_1.field_1'])
+
+        result_A = elsec.client.get_fieldnames('localhost:9200', 'elsec_test_index_1')
+        result_B = elsec.client.get_fieldnames('localhost:9200', 'elsec_test_alias_2')
+        self.assertEqual(result_A, result_B)
+
+        # elsec_test_alias_1 points to indices 1 and 2; so the results of
+        # calling get_fieldnames on the alias and on the two indices should be
+        # the same.
+        result_A = elsec.client.get_fieldnames('localhost:9200', 'elsec_test_alias_1')
+        result_B = elsec.client.get_fieldnames('localhost:9200', 'elsec_test_index_1,elsec_test_index_2')
+        self.assertEqual(result_A, result_B)
+        
+        with self.assertRaises(elsec.exceptions.ESRequestError):
+            result = elsec.client.get_fieldnames('localhost:9200', 'FOO')
+        with self.assertRaises(elsec.exceptions.ESError):
+            result = elsec.client.get_fieldnames('localhost:9200', 'FOO')
+        # elsec.exceptions.ESRequestError should also be a ValueError
+        with self.assertRaises(ValueError):
+            result = elsec.client.get_fieldnames('localhost:9200', 'FOO')
+            
+        with self.assertRaises(IOError):
+            result = elsec.client.get_fieldnames('XXX', 'elsec_test_index_1')
     
     
     def test_input_loop(self):

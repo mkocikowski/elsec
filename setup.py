@@ -24,6 +24,7 @@ setup(
     description = 'Elasticsearch interactive command line client', 
     long_description=ld,
     packages = ['elsec', 'elsec.test'], 
+    package_data={'': ['README.md',],},
     entry_points = {
         'console_scripts': [
             'elsec = elsec.client:main', 

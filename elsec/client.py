@@ -6,6 +6,8 @@ Does basic setup (readline, command history), and runs the input loop.
 Commands are passed to the parser.parse() function for parsing and processing.
 All application output is handled by the output() function. 
 
+See elsec.__init__ for top-level documentation.
+
 """
 
 import sys
@@ -23,6 +25,9 @@ import elsec.parser
 
 
 logger = logging.getLogger(__name__)
+
+# all the readline stuff is straight out of tutorials, nothing fancy here
+#
 
 def _get_readline_history():
     try: 
@@ -53,7 +58,24 @@ def _configure_readline():
     return
 
 
-def get_fieldnames(host, index):
+def get_fieldnames(host, index): 
+    """Return a list of names of all fields in mappings for the index.
+    
+    Calls elsec.actions.get_mappings(), and then dot-collapses the field names
+    into mapping.object.fieldname format, returning a list of all the fields.
+    (This is later used for tab completions)
+
+    Input: 
+    - host, index: str
+    
+    Returns:
+    List of str, each element a fully qualified field name
+    
+    Raises:
+    ESRequestError, IOError
+    
+    """
+    
     def _dot_collapse(pre, d): 
         for k in d.keys():
             try: 
@@ -62,7 +84,9 @@ def get_fieldnames(host, index):
                     yield f
             except KeyError:
                 yield ("%s.%s" % (pre, k), d[k]['type'])
+    
     _, _, _, mappings = elsec.actions.get_mappings(host, index)
+            
     # the _mapping call returns a dictionary where keys are index names,
     # and values are dictionaries where keys are mapping names and
     # values are mappings. So if we are doing with a single index, it is
@@ -72,6 +96,7 @@ def get_fieldnames(host, index):
     _temp = dict()
     for m in mappings.values():
         _temp.update(m)
+        
     fields = [f[0] for f in _dot_collapse("", _temp)]
     return fields
     
