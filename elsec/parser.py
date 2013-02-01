@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 completions = {
     'fields': [], 
     'hits': [], 
-    'commands': ['search', 'count', 'view', 'exit', 'help', 'types', 'fields'], 
+    'commands': ['search', 'count', 'view', 'exit', 'help'], 
 }
 
 # http://www.doughellmann.com/PyMOTW/readline/
@@ -39,13 +39,21 @@ def complete(text, state):
     return response
 
 
-def _output(request, response, separator=">"):
-    elsec.client.output(request)
-    elsec.client.output(">")
-    elsec.client.output(response)
+def _output(output_f, request, response, separator=">"):
+    output_f(request)
+    output_f(">")
+    output_f(response)
+    return
     
 
-def parse(host, index, line):
+def parse(host, index, output_f, line):
+
+    # the coupling here is definitely not loose enough, parse() should really
+    # return functions and arguments with which they should be called, and
+    # then the validity of the parser could be properly evaluated, but I don't
+    # want to make something pretty simple too complicated just to make it
+    # 'right'. As it is, testing can be done by comparing the output from
+    # calls against fixtures.
 
     command = line.split(" ")[0].lower()
     params = line.split(" ")[1:]
@@ -55,12 +63,12 @@ def parse(host, index, line):
             elsec.actions.do_search(host, index, " ".join(params))
         if 'hits' in response:
             completions['hits'] = response['hits']['hits']
-        _output(curl, response)
+        _output(output_f, curl, response)
 
     elif command == 'count':
         curl, url, request, response = \
             elsec.actions.do_count(host, index, " ".join(params))
-        _output(curl, response)
+        _output(output_f, curl, response)
 
     elif command == 'view': 
         for p in params:
@@ -70,17 +78,17 @@ def parse(host, index, line):
             for d in docs:
                 curl, url, request, response = \
                     elsec.actions.do_view(host, d[0], d[1], d[2])
-                _output(curl, response)
+                _output(output_f, curl, response)
     
-    elif command == 'types':
-        curl, url, request, response = elsec.actions.get_mappings(host, index)
-        _output(curl, response)
-
-    elif command == 'fields':
-        elsec.client.output(sorted(completions['fields']))
+#     elif command == 'types':
+#         curl, url, request, response = elsec.actions.get_mappings(host, index)
+#         _output(curl, response)
+# 
+#     elif command == 'fields':
+#         output_f(sorted(completions['fields']))
     
     elif command == 'help':
-        elsec.client.output(elsec.help.OVERVIEW)
+        output_f(elsec.help.OVERVIEW)
 
     elif command == 'exit':
         raise EOFError()

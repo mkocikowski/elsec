@@ -6,8 +6,9 @@ import errno
 import argparse
 import readline
 import json
-import traceback
+# import traceback
 import logging
+import functools
 
 import elsec.http
 import elsec.actions
@@ -36,7 +37,7 @@ def _save_readline_history():
         logger.warning(exc)
 
 
-def configure_readline():
+def _configure_readline():
     _get_readline_history()
     readline.set_completer(elsec.parser.complete)
     readline.parse_and_bind("tab: complete")
@@ -67,12 +68,14 @@ def get_fieldnames(host, index):
     fields = [f[0] for f in _dot_collapse("", _temp)]
     return fields
     
-
-def output(data):
+    
+def output(data, fh=sys.stdout):
     if type(data) in [str, unicode]:
-        print(data)
+        fh.write(data)
+        fh.write("\n")
         return
-    print(json.dumps(data, indent=4, sort_keys=True))
+    fh.write(json.dumps(data, indent=4, sort_keys=True))
+    fh.write("\n")
     return
 
 
@@ -83,23 +86,23 @@ def get_args_parser():
     return parser
 
 
-def input_loop(host, index):
-    prompt = None
-    buffer = ""
-    while True:
-        if not prompt: 
-            prompt = "%s/%s/> " % (host, index)
-        line = raw_input(prompt).strip()
-        if not line:
-            continue
-        buffer += " " + line
-        prompt = "> "
-        if buffer.strip().split()[0].lower() not in ['search', 'count'] or \
-                buffer.strip().endswith(";"):
-            elsec.parser.parse(host, index, buffer.strip(" ;\n\r\t"))
-            buffer = ""
-            prompt = None
-
+def input_loop(prompt_f, input_f, parser_f):
+    prompt = prompt_f()
+    buff = ""
+    try: 
+        while True:
+            line = input_f(prompt).strip()
+            if not line:
+                continue
+            buff += " " + line
+            prompt = "> "
+            if buff.strip().split()[0].lower() not in ['search', 'count'] or \
+                    buff.strip().endswith(";"):
+                parser_f(buff.strip(" ;\n\r\t"))
+                buff = ""
+                prompt = prompt_f()
+    except EOFError:
+        return
 
 def main():
 
@@ -112,8 +115,9 @@ def main():
             aliases = elsec.actions.get_aliases(args.host)
             print("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
             sys.exit(0)
+        # this is ugly, but readline seems to rely on globals
         elsec.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
-        configure_readline()
+        _configure_readline()
 
     except (TypeError, ValueError):
         logger.error("Error initializing, check your connection parameters.", exc_info=True)
@@ -123,17 +127,16 @@ def main():
         logger.error("IO (network) error, check your connection parameters.", exc_info=True)
         sys.exit(1)
 
-
-    try: 
-        print ("Type 'help' for help. Exit with Control-D. ")
-        input_loop(args.host, args.index)
-
-    
-    except EOFError:
-        _save_readline_history()
-        print("Bye!")
-        sys.exit(0)
+    prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
+    parser_f = functools.partial(elsec.parser.parse, args.host, args.index, output)
+    output("Type 'help' for help. Exit with Control-D. ")
+    input_loop(prompt_f, raw_input, parser_f)
+    _save_readline_history()
+    output("Bye!")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
     main()
+
+
