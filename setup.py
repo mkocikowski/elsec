@@ -41,4 +41,5 @@ setup(
         "Topic :: Utilities",
     ], 
     license = 'MIT',
+    test_suite = "elsec.test.units.suite", 
 )
