@@ -25,6 +25,11 @@ This tool is not intended to be an admin interface, or a complex query
 builder. It is to be quick to learn and safe and easy to use, more of a spoon
 than a swiss army knife.
 
+## Installation
+
+Run this from your command line:
+
+    pip install https://github.com/mkocikowski/elsec/archive/master.zip
 
 
 ## License
