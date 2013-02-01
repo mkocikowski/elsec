@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
+"""This is the entry point for the application. 
+
+Does basic setup (readline, command history), and runs the input loop.
+Commands are passed to the parser.parse() function for parsing and processing.
+All application output is handled by the output() function. 
+
+"""
+
 import sys
 import os.path
 import errno
 import argparse
 import readline
 import json
-# import traceback
 import logging
 import functools
 
@@ -80,6 +87,8 @@ def output(data, fh=sys.stdout):
 
 
 def get_args_parser():
+    # the reason for the args parser to be defined in a separate function is
+    # that it makes it easy to test it.
     parser = argparse.ArgumentParser(description="ElasticSearch client.")
     parser.add_argument('host', type=str, help="elasticsearch server address, including port")
     parser.add_argument('index', type=str, nargs="?", help="name of the index")
@@ -96,6 +105,8 @@ def input_loop(prompt_f, input_f, parser_f):
                 continue
             buff += " " + line
             prompt = "> "
+            # 'search' and 'count' commands allow for multiline input,
+            # terminated by ';', all other commands are single line.
             if buff.strip().split()[0].lower() not in ['search', 'count'] or \
                     buff.strip().endswith(";"):
                 parser_f(buff.strip(" ;\n\r\t"))
