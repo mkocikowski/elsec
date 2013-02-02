@@ -72,7 +72,8 @@ def get_fieldnames(host, index):
     List of str, each element a fully qualified field name
     
     Raises:
-    ESRequestError, IOError
+    - ESRequestError/ValueError if response from ES has 'error' field. 
+    - IOError comes up from the http call if there is an IO problem.
     
     """
     
@@ -102,6 +103,13 @@ def get_fieldnames(host, index):
     
     
 def output(data, fh=sys.stdout):
+    """Output data, if it is not string, then serialized to JSON. 
+    
+    Input:
+    - data: if str or unicode, output as is. If other, serialize to JSON
+    - fh: file handle for output, defaults to sys.stdout
+    
+    """
     if type(data) in [str, unicode]:
         fh.write(data)
         fh.write("\n")
@@ -121,6 +129,23 @@ def get_args_parser():
 
 
 def input_loop(prompt_f, input_f, parser_f):
+    """Read command lines, pass them to the parser. 
+    
+    Takes lines from input_f. If a line begins with 'search' or 'count', allow
+    for multiline input, terminated by ';'. Pass complete commands to parser_f
+    for execution. Break the input loop on EOFError. 
+
+    Input:
+    - prompt_f: callable with signature f(), returning prompt string
+    - input_f: callable with signature f(s) where s is a string, when called
+    returns a line of text (presumably the input). In its basic form
+    input_f=raw_input.
+    - parser_f: callable with signature f(s) where s is a string containing
+    the entire command line/s. In the application parser_f =
+    functools.partial(elsec.parser.parse, args.host, args.index, output)
+
+    """
+    
     prompt = prompt_f()
     buff = ""
     try: 
@@ -142,6 +167,11 @@ def input_loop(prompt_f, input_f, parser_f):
 
 
 def main():
+    """Do the basic setup, configure readline, and enter the input loop. 
+    
+    On exit(0) saves the readline history. On errors exits with exit(1).
+    
+    """
 
     try:
         args = get_args_parser().parse_args()
