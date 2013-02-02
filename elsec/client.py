@@ -2,9 +2,9 @@
 
 """This is the entry point for the application. 
 
-Does basic setup (readline, command history), and runs the input loop.
-Commands are passed to the parser.parse() function for parsing and processing.
-All application output is handled by the output() function. 
+main() does basic setup (readline, command history), and runs the
+input_loop(). Commands are passed to the parser.execute() function for parsing
+and processing. All application output is handled by the output() function. 
 
 See elsec.__init__ for top-level documentation.
 
@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 # all the readline stuff is straight out of tutorials, nothing fancy here
 #
-
 def _get_readline_history():
     try: 
         fn = os.path.join(os.path.expanduser("~"), ".elsec_history")
@@ -142,7 +141,7 @@ def input_loop(prompt_f, input_f, parser_f):
     input_f=raw_input.
     - parser_f: callable with signature f(s) where s is a string containing
     the entire command line/s. In the application parser_f =
-    functools.partial(elsec.parser.parse, args.host, args.index, output)
+    functools.partial(elsec.parser.execute, args.host, args.index, output)
 
     """
     
@@ -193,7 +192,7 @@ def main():
         sys.exit(1)
 
     prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
-    parser_f = functools.partial(elsec.parser.parse, args.host, args.index, output)
+    parser_f = functools.partial(elsec.parser.execute, args.host, args.index, output)
     output("Type 'help' for help. Exit with Control-D. ")
     input_loop(prompt_f, raw_input, parser_f)
     _save_readline_history()

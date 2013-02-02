@@ -121,7 +121,7 @@ bar
         def _output(data):
             return elsec.client.output(data, fh=out)
         
-        parser_f = functools.partial(elsec.parser.parse, 'localhost:9200', 'elsec_test_index_1', _output)
+        parser_f = functools.partial(elsec.parser.execute, 'localhost:9200', 'elsec_test_index_1', _output)
     
         # these will get popped in reverse order, the primary purpose here 
         # if to test that the multiline gets dealt with correctly

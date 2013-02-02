@@ -46,7 +46,7 @@ def _output(output_f, request, response, separator=">"):
     return
     
 
-def parse(host, index, output_f, line):
+def execute(host, index, output_f, line):
 
     # the coupling here is definitely not loose enough, parse() should really
     # return functions and arguments with which they should be called, and
