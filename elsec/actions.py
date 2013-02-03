@@ -34,25 +34,14 @@ def get_aliases(host):
 
 def get_mappings(host, index): 
     url = "http://%s/%s/_mapping" % (host, index)
-    curl = "curl -XGET '%s'" % (url,)
     status, reason, data = elsec.http.get(url)
     data = json.loads(data)
     if 'error' in data:
         raise elsec.exceptions.ESRequestError(data['status'], data['error'])
-    return (curl, url, None, data)
+    return data
 
 
-# def get_fields(mappings):
-#     def _dot_collapse(pre, d): 
-#         for k in d.keys():
-#             try: 
-#                 ps = "%s.%s" % (pre, k) if pre else k
-#                 for f in _dot_collapse(ps, d[k]['properties']): 
-#                     yield f
-#             except KeyError:
-#                 yield ("%s.%s" % (pre, k), d[k]['type'])
-#     return _dot_collapse("", mappings)
-
+# ----------------------------------------------------------------------------
 
 def _prepare_request(query):
 
@@ -81,8 +70,9 @@ def do_search(host, index, query):
     curl = "curl -XPOST '%s' -d '%s'" % \
         (url, json.dumps(request, indent=4, sort_keys=True))
     status, reason, data = elsec.http.post(url, json.dumps(request))
-    return (curl, url, request, json.loads(data))
-
+    yield (curl, json.loads(data))
+    return
+    
 
 def do_count(host, index, query): 
     request = _prepare_request(query)
@@ -96,12 +86,21 @@ def do_count(host, index, query):
     curl = "curl -XPOST '%s' -d '%s'" % \
         (url, json.dumps(qqs, indent=4, sort_keys=True))
     status, reason, data = elsec.http.post(url, json.dumps(qqs))
-    return (curl, url, qqs, json.loads(data))
+    yield (curl, json.loads(data))
+    return
+    
 
+def do_view(host, index, docid):
 
-def do_view(host, index, mapping, docid):
-    url = "http://%s/%s/%s/%s" % (host, index, mapping, docid)
-    curl = "curl -XGET '%s'" % (url, )
-    status, reason, data = elsec.http.get(url)
-    return (curl, url, None, json.loads(data))
+    types = set()
+    for _m in get_mappings(host, index).values():
+        types.update(_m.keys())
 
+    for _t in sorted(types):
+        url = "http://%s/%s/%s/%s" % (host, index, _t, docid)
+        curl = "curl -XGET '%s'" % (url, )
+        status, reason, data = elsec.http.get(url)
+        if status == 200: 
+            yield (curl, json.loads(data))
+
+    return

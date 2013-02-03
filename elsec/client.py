@@ -85,7 +85,7 @@ def get_fieldnames(host, index):
             except KeyError:
                 yield ("%s.%s" % (pre, k), d[k]['type'])
     
-    _, _, _, mappings = elsec.actions.get_mappings(host, index)
+    mappings = elsec.actions.get_mappings(host, index)
             
     # the _mapping call returns a dictionary where keys are index names,
     # and values are dictionaries where keys are mapping names and
@@ -127,11 +127,11 @@ def get_args_parser():
     return parser
 
 
-def input_loop(prompt_f, input_f, parser_f):
+def input_loop(prompt_f, input_f, handler_f):
     """Read command lines, pass them to the parser. 
     
     Takes lines from input_f. If a line begins with 'search' or 'count', allow
-    for multiline input, terminated by ';'. Pass complete commands to parser_f
+    for multiline input, terminated by ';'. Pass complete commands to handler_f
     for execution. Break the input loop on EOFError. 
 
     Input:
@@ -139,10 +139,9 @@ def input_loop(prompt_f, input_f, parser_f):
     - input_f: callable with signature f(s) where s is a string, when called
     returns a line of text (presumably the input). In its basic form
     input_f=raw_input.
-    - parser_f: callable with signature f(s) where s is a string containing
-    the entire command line/s. In the application parser_f =
-    functools.partial(elsec.parser.execute, args.host, args.index, output)
-
+    - handler_f: callable with signature f(s) where s is a string containing
+    the entire command line/s. Responsible for parsing and execution.
+    
     """
     
     prompt = prompt_f()
@@ -158,7 +157,7 @@ def input_loop(prompt_f, input_f, parser_f):
             # terminated by ';', all other commands are single line.
             if buff.strip().split()[0].lower() not in ['search', 'count'] or \
                     buff.strip().endswith(";"):
-                parser_f(buff.strip(" ;\n\r\t"))
+                handler_f(buff.strip(" ;\n\r\t"))
                 buff = ""
                 prompt = prompt_f()
     except EOFError:
@@ -171,6 +170,9 @@ def main():
     On exit(0) saves the readline history. On errors exits with exit(1).
     
     """
+    
+    logging.basicConfig(level=logging.DEBUG)
+#     logging.basicConfig(filename="/Users/mik/dev/elsec/elsec/esc.log", level=logging.DEBUG)
 
     try:
         args = get_args_parser().parse_args()
@@ -192,17 +194,15 @@ def main():
         sys.exit(1)
 
     prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
-    parser_f = functools.partial(elsec.parser.execute, args.host, args.index, output)
+    handler_f = functools.partial(elsec.parser.handle, args.host, args.index, output)
     output("Type 'help' for help. Exit with Control-D. ")
-    input_loop(prompt_f, raw_input, parser_f)
+    input_loop(prompt_f, raw_input, handler_f)
     _save_readline_history()
     output("Bye!")
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-#     logging.basicConfig(filename="/Users/mik/dev/elsec/elsec/esc.log", level=logging.DEBUG)
     main()
 
 

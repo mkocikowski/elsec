@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+"""Responsible for tab completion, parsing and execution of commands. 
+
+Functions:
+- complete(): called by readline for tab completion
+- handle(): called by client.input_loop to handle commands
+
+"""
+
+
 import readline
 import logging
 import traceback
@@ -15,8 +24,12 @@ completions = {
     'commands': ['search', 'count', 'view', 'exit', 'help'], 
 }
 
+
 # http://www.doughellmann.com/PyMOTW/readline/
+#
 def complete(text, state):
+    """Tab complete for readline."""
+
     line = readline.get_line_buffer()
 
     # first token
@@ -39,59 +52,85 @@ def complete(text, state):
     return response
 
 
-def _output(output_f, request, response, separator=">"):
-    output_f(request)
-    output_f(">")
-    output_f(response)
-    return
+def handle(host, index, output_f, line): 
+    """Parse command line, execute command, output results. 
     
+    Input:
+    - host, index: str
+    - output_f: callable with signature f(data), see client.output()
+    - line: str, input to be parsed
+    
+    Returns:
+    nothing, command execution and result output handled here. If you want to
+    see what gets output (for testing) provide your own output_f.
 
-def execute(host, index, output_f, line):
+    """
 
-    # the coupling here is definitely not loose enough, parse() should really
-    # return functions and arguments with which they should be called, and
-    # then the validity of the parser could be properly evaluated, but I don't
-    # want to make something pretty simple too complicated just to make it
-    # 'right'. As it is, testing can be done by comparing the output from
-    # calls against fixtures.
+    for _func, _args in _parse(line):
+        for request, response in _func(host, index, *_args): 
+            _output(output_f, request, response)
+            # add document ids to autocomplete
+            if 'hits' in response:
+                completions['hits'] = response['hits']['hits']
 
+    return 
+
+
+def _parse(line):
+    """Parse input line, yield callable with parameters.
+    
+    A single command (collapsing multiline commands into single line has
+    already been done in client.input_loop()) may result in one or more
+    function calls (such as when 'view' has multiple documents). This function
+    will yield tuples with appropriate functions to be called and with their
+    parameters.
+
+    Input: 
+    - line: str
+    
+    Yields:
+    tuple(function, params). The function should accept the *params, and in
+    turn yield (request, response). 
+    
+    """
+    
     command = line.split(" ")[0].lower()
     params = line.split(" ")[1:]
 
     if command == 'search':
-        curl, url, request, response = \
-            elsec.actions.do_search(host, index, " ".join(params))
-        if 'hits' in response:
-            completions['hits'] = response['hits']['hits']
-        _output(output_f, curl, response)
-
+        _func = elsec.actions.do_search
+        _args = [" ".join(params),]
+        yield (_func, _args)
+    
     elif command == 'count':
-        curl, url, request, response = \
-            elsec.actions.do_count(host, index, " ".join(params))
-        _output(output_f, curl, response)
-
+        _func = elsec.actions.do_count
+        _args = [" ".join(params),]
+        yield (_func, _args)
+                
     elif command == 'view': 
         for p in params:
-            docs = [(d['_index'], d['_type'], d['_id']) for 
-                d in completions['hits'] if 
-                d['_id'] == p]
-            for d in docs:
-                curl, url, request, response = \
-                    elsec.actions.do_view(host, d[0], d[1], d[2])
-                _output(output_f, curl, response)
-    
-#     elif command == 'types':
-#         curl, url, request, response = elsec.actions.get_mappings(host, index)
-#         _output(curl, response)
-# 
-#     elif command == 'fields':
-#         output_f(sorted(completions['fields']))
+            _func = elsec.actions.do_view
+            _args = [p,]
+            yield (_func, _args)
     
     elif command == 'help':
-        output_f(elsec.help.OVERVIEW)
-
-    elif command == 'exit':
-        raise EOFError()
+        def _help(*args, **kwargs):
+            yield (None, elsec.help.OVERVIEW)
+        yield (_help, [])
         
+    elif command == 'exit':
+        def _exit(*args, **kwargs):
+            raise EOFError
+        yield (_exit, [])
+        
+
+def _output(output_f, request, response, separator=">"):
+
+    if request: 
+        output_f(request)
+        output_f(">")
+
+    output_f(response)
+
     return
 

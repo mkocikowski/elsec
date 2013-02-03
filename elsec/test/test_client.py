@@ -7,6 +7,7 @@ import StringIO
 # import time
 
 import elsec.client
+import elsec.help
 import elsec.exceptions
 import elsec.test.fixture
 
@@ -121,11 +122,11 @@ bar
         def _output(data):
             return elsec.client.output(data, fh=out)
         
-        parser_f = functools.partial(elsec.parser.execute, 'localhost:9200', 'elsec_test_index_1', _output)
+        parser_f = functools.partial(elsec.parser.handle, 'localhost:9200', 'elsec_test_index_1', _output)
     
         # these will get popped in reverse order, the primary purpose here 
         # if to test that the multiline gets dealt with correctly
-        in_l = ['last', '   ', 'count doctype_1.field_2:3;', 'first']
+        in_l = ['help', 'view 1 2', 'view 3;', '   ', 'count doctype_1.field_2:3;', 'first']
         in_f = _input(in_l)    
         
         elsec.client.input_loop(lambda: "", in_f, parser_f)
@@ -145,7 +146,60 @@ bar
     }, 
     "count": 1
 }
-"""
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/3'
+>
+{
+    "_id": "3", 
+    "_index": "elsec_test_index_1", 
+    "_source": {
+        "field_1": "in1, dt1", 
+        "field_2": "value 3"
+    }, 
+    "_type": "doctype_1", 
+    "_version": 1, 
+    "exists": true
+}
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/1'
+>
+{
+    "_id": "1", 
+    "_index": "elsec_test_index_1", 
+    "_source": {
+        "field_1": "in1, dt1", 
+        "field_2": "value 1"
+    }, 
+    "_type": "doctype_1", 
+    "_version": 1, 
+    "exists": true
+}
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_2/1'
+>
+{
+    "_id": "1", 
+    "_index": "elsec_test_index_1", 
+    "_source": {
+        "field_1": "in1, dt2", 
+        "field_2": "value 1"
+    }, 
+    "_type": "doctype_2", 
+    "_version": 1, 
+    "exists": true
+}
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/2'
+>
+{
+    "_id": "2", 
+    "_index": "elsec_test_index_1", 
+    "_source": {
+        "field_1": "in1, dt1", 
+        "field_2": "value 2"
+    }, 
+    "_type": "doctype_1", 
+    "_version": 1, 
+    "exists": true
+}
+%s
+""" % elsec.help.OVERVIEW
         result = out.getvalue()
         out.close()
         
