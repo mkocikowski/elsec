@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 completions = {
     'fields': [], 
     'hits': [], 
-    'commands': ['search', 'count', 'view', 'exit', 'help'], 
+    'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version'], 
 }
 
 
@@ -39,7 +39,7 @@ def complete(text, state):
     
     else:
         command = line.split(" ")[0].lower()
-        if command == 'view':
+        if command in ['view', 'open']:
             matches = [h['_id'] for 
                 h in completions['hits'] if 
                 h['_id'].startswith(text)]
@@ -112,11 +112,22 @@ def _parse(line):
             _func = elsec.actions.do_view
             _args = [p,]
             yield (_func, _args)
+
+    elif command == 'open': 
+        for p in params:
+            _func = elsec.actions.do_open
+            _args = [p,]
+            yield (_func, _args)
     
     elif command == 'help':
         def _help(*args, **kwargs):
             yield (None, elsec.help.OVERVIEW)
         yield (_help, [])
+    
+    elif command == 'version':
+        def _version(*args, **kwargs):
+            yield(None, elsec.__version__)
+        yield (_version, [])
         
     elif command == 'exit':
         def _exit(*args, **kwargs):

@@ -4,6 +4,7 @@ import copy
 import json
 import traceback
 import logging
+import subprocess, shlex
 
 import elsec.http
 import elsec.templates
@@ -102,5 +103,17 @@ def do_view(host, index, docid):
         status, reason, data = elsec.http.get(url)
         if status == 200: 
             yield (curl, json.loads(data))
+
+    return
+
+
+def do_open(host, index, docid):
+
+    for curl, _ in do_view(host, index, docid):
+        url = curl.split()[2].strip(" '")
+        _command = "open %s" % (url, )
+        rc = subprocess.call(shlex.split(_command.encode("utf-8")))
+        yield (None, curl)
+        
 
     return
