@@ -1,10 +1,11 @@
 import sys
+import os.path
 import unittest
 import logging
 
 
 def suite():
-    tests = unittest.defaultTestLoader.discover('.')
+    tests = unittest.defaultTestLoader.discover(os.path.dirname(__file__))
     return tests
 
 
