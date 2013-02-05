@@ -49,18 +49,18 @@ def _save_readline_history():
 
 
 def _configure_readline():
-    if 'libedit' in readline.__doc__:
-        output("""
-TAB-completion disabled, because readline library is not installed. 
-To install, do 'easy_install readline' from the command line (not 'pip'!).
-""".strip())
-        return        
+#     if 'libedit' in readline.__doc__:
+#         output("""
+# TAB-completion disabled, because readline library is not installed. 
+# To install, do 'easy_install readline' from the command line (not 'pip'!).
+# """.strip())
+#         return        
     _get_readline_history()
     readline.set_completer(elsec.parser.complete)
     readline.parse_and_bind("tab: complete")
-#     if 'libedit' in readline.__doc__:
-#         readline.parse_and_bind("bind ^I rl_complete")
-#         logger.warning("Using libedit readline")
+    if 'libedit' in readline.__doc__:
+        readline.parse_and_bind("bind ^I rl_complete")
+        logger.warning("Using libedit readline")
     return
 
 
@@ -179,8 +179,8 @@ def main():
     
     """
     
-    logging.basicConfig(level=logging.DEBUG)
-#     logging.basicConfig(filename="/Users/mik/dev/elsec/elsec/esc.log", level=logging.DEBUG)
+#     logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
     try:
         args = get_args_parser().parse_args()

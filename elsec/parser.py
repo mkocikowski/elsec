@@ -31,6 +31,17 @@ def complete(text, state):
     """Tab complete for readline."""
 
     line = readline.get_line_buffer()
+    
+    # there is a difference in the way line buffer is handled by GNU readline
+    # and by libedit, which is what runs by default on OSX. With GNU readline
+    # the line buffer is empty after each command; with libedit, old buffer
+    # remains, and gets overwritten from the beginning on (if the previous
+    # line was 'foobaz', and someone types 'xxx' on new line, then the line
+    # buffer is 'xxxbaz'). This is why the content of the line buffer needs to
+    # be trimmed, if completion decisions are to be made based on the buffer
+    # content. 
+    #
+    line = line[:readline.get_endidx()]
 
     # first token
     if text == line:
