@@ -129,6 +129,7 @@ def get_args_parser():
     # the reason for the args parser to be defined in a separate function is
     # that it makes it easy to test it.
     parser = argparse.ArgumentParser(description="ElasticSearch client.")
+    parser.add_argument('-v', '--version', action='version', version=elsec.__version__)
     parser.add_argument('host', type=str, help="elasticsearch server address, including port")
     parser.add_argument('index', type=str, nargs="?", help="name of the index")
     return parser
