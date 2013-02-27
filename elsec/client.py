@@ -22,6 +22,7 @@ import functools
 import elsec.http
 import elsec.actions
 import elsec.parser
+import elsec.output
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def _get_readline_history():
         readline.read_history_file(fn)
     except IOError as exc:
         if exc.errno == errno.ENOENT:
-            output("No command history file found.")
+            elsec.output.output("No command history file found.")
         else:
             logger.warning(exc)
 
@@ -49,12 +50,6 @@ def _save_readline_history():
 
 
 def _configure_readline():
-#     if 'libedit' in readline.__doc__:
-#         output("""
-# TAB-completion disabled, because readline library is not installed. 
-# To install, do 'easy_install readline' from the command line (not 'pip'!).
-# """.strip())
-#         return        
     _get_readline_history()
     readline.set_completer(elsec.parser.complete)
     readline.parse_and_bind("tab: complete")
@@ -106,23 +101,28 @@ def get_fieldnames(host, index):
         
     fields = [f[0] for f in _dot_collapse("", _temp)]
     return fields
+
     
-    
-def output(data, fh=sys.stdout):
-    """Output data, if it is not string, then serialized to JSON. 
-    
-    Input:
-    - data: if str or unicode, output as is. If other, serialize to JSON
-    - fh: file handle for output, defaults to sys.stdout
-    
-    """
-    if type(data) in [str, unicode]:
-        fh.write(data)
-        fh.write("\n")
-        return
-    fh.write(json.dumps(data, indent=4, sort_keys=True))
-    fh.write("\n")
-    return
+# def dumps(data): 
+#     s = json.dumps(data, indent=4, sort_keys=True)
+#     return s
+
+
+# def output(data, fh=sys.stdout):
+#     """Output data, if it is not string, then serialized to JSON. 
+#     
+#     Input:
+#     - data: if str or unicode, output as is. If other, serialize to JSON
+#     - fh: file handle for output, defaults to sys.stdout
+#     
+#     """
+#     if type(data) in [str, unicode]:
+#         fh.write(data)
+#         fh.write("\n")
+#         return
+#     fh.write(elsec.output.dumps(data))
+#     fh.write("\n")
+#     return
 
 
 def get_args_parser():
@@ -132,6 +132,7 @@ def get_args_parser():
     parser.add_argument('-v', '--version', action='version', version=elsec.__version__)
     parser.add_argument('host', type=str, help="elasticsearch server address, including port")
     parser.add_argument('index', type=str, nargs="?", help="name of the index")
+    parser.add_argument('--flat', action='store_true', help="if set, show requests and responses in single lines")
     return parser
 
 
@@ -179,15 +180,17 @@ def main():
     
     """
     
-#     logging.basicConfig(level=logging.DEBUG)
-    logging.basicConfig(filename="esc.log", level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
+#     logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
     try:
         args = get_args_parser().parse_args()
+        # if no index name provided on invocation, look up all indices and
+        # aliases, display them, and exit
         if not args.index:
             indices = elsec.actions.get_indices(args.host)
             aliases = elsec.actions.get_aliases(args.host)
-            output("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
+            elsec.output.output("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
             sys.exit(0)
         # this is ugly, but readline seems to rely on globals
         elsec.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
@@ -200,13 +203,21 @@ def main():
     except IOError:
         logger.error("IO (network) error, check your connection parameters.", exc_info=True)
         sys.exit(1)
-
+    
+#     global dumps
+#     dumps = lambda x: json.dumps(x)
+    
+    if args.flat:
+        elsec.output.FLAT = True
+    
+    input_f = raw_input
+    output_f = elsec.output.output
     prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
-    handler_f = functools.partial(elsec.parser.handle, args.host, args.index, output)
-    output("Type 'help' for help. Exit with Control-D. ")
-    input_loop(prompt_f, raw_input, handler_f)
+    handler_f = functools.partial(elsec.parser.handle, args.host, args.index, output_f)
+    output_f("Type 'help' for help. Exit with Control-D. ")
+    input_loop(prompt_f, input_f, handler_f)
     _save_readline_history()
-    output("Bye!")
+    output_f("Bye!")
     sys.exit(0)
 
 

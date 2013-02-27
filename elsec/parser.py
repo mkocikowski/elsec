@@ -11,9 +11,8 @@ Functions:
 
 import readline
 import logging
-import traceback
 
-import elsec.client
+# import elsec.client
 import elsec.help
 
 logger = logging.getLogger(__name__)
@@ -146,11 +145,11 @@ def _parse(line):
         yield (_exit, [])
         
 
-def _output(output_f, request, response, separator=">"):
+def _output(output_f, request, response, separator=elsec.output.SEPARATOR):
 
     if request: 
         output_f(request)
-        output_f(">")
+        output_f(separator)
 
     output_f(response)
 

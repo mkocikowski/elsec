@@ -2,13 +2,14 @@
 
 import copy
 import json
-import traceback
+# import traceback
 import logging
 import subprocess, shlex
 
 import elsec.http
 import elsec.templates
 import elsec.exceptions
+import elsec.output
 
 
 logger = logging.getLogger(__name__)
@@ -68,8 +69,9 @@ def _prepare_request(query):
 def do_search(host, index, query): 
     request = _prepare_request(query)
     url = "http://%s/%s/_search" % (host, index)
-    curl = "curl -XPOST '%s' -d '%s'" % \
-        (url, json.dumps(request, indent=4, sort_keys=True))
+#     curl = "curl -XPOST '%s' -d '%s'" % \
+#         (url, json.dumps(request, indent=4, sort_keys=True))
+    curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(request))
     status, reason, data = elsec.http.post(url, json.dumps(request))
     yield (curl, json.loads(data))
     return
@@ -84,8 +86,9 @@ def do_count(host, index, query):
         # error from the ES
         qqs = request
     url = "http://%s/%s/_count" % (host, index)
-    curl = "curl -XPOST '%s' -d '%s'" % \
-        (url, json.dumps(qqs, indent=4, sort_keys=True))
+#     curl = "curl -XPOST '%s' -d '%s'" % \
+#         (url, json.dumps(qqs, indent=4, sort_keys=True))
+    curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(qqs))
     status, reason, data = elsec.http.post(url, json.dumps(qqs))
     yield (curl, json.loads(data))
     return
