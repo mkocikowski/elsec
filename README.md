@@ -31,6 +31,9 @@ For the 'dev' release:
 
     pip install https://github.com/mkocikowski/elsec/archive/dev.zip
 
+Tutorial
+--------
+See the [project wiki.](https://github.com/mkocikowski/elsec/wiki)
 
 License
 -------
