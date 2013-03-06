@@ -160,6 +160,14 @@ curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/3'
     "_version": 1, 
     "exists": true
 }
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_2/3'
+>
+{
+    "_id": "3", 
+    "_index": "elsec_test_index_1", 
+    "_type": "doctype_2", 
+    "exists": false
+}
 curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/1'
 >
 {
@@ -199,11 +207,18 @@ curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_1/2'
     "_version": 1, 
     "exists": true
 }
+curl -XGET 'http://localhost:9200/elsec_test_index_1/doctype_2/2'
+>
+{
+    "_id": "2", 
+    "_index": "elsec_test_index_1", 
+    "_type": "doctype_2", 
+    "exists": false
+}
 %s
 """ % elsec.help.OVERVIEW
         result = out.getvalue()
         out.close()
-        
         self.assertEqual(result, expected)
         
         

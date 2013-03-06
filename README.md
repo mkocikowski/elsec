@@ -1,9 +1,5 @@
-## Elasticsearch interactive client
-
-NOT YET READY FOR PUBLIC CONSUMPTION, CLEANING UP AND GENERALIZING USE CASES
-FROM IN-HOUSE HACKY THING, WILL ANNOUNCE HERE WHEN 'READY', WHICH SHOULD BE
-SOON (BY THE END OF FEBRUARY 2013?).
-
+Elasticsearch interactive client
+--------------------------------
 The goal of the project is to provide an easy to use, interactive
 command line (terminal) client to Elasticsearch, with behavior similar
 to 'mysql' or 'psql' clients. The tool is to give a safe (read-only) way
@@ -25,14 +21,19 @@ This tool is not intended to be an admin interface, or a complex query
 builder. It is to be quick to learn and safe and easy to use, more of a spoon
 than a swiss army knife.
 
-## Installation
+Installation
+------------
+For the current 'stable' release:
+    
+    pip install elsec
 
-Run this from your command line:
+For the 'dev' release: 
 
-    pip install https://github.com/mkocikowski/elsec/archive/master.zip
+    pip install https://github.com/mkocikowski/elsec/archive/dev.zip
 
 
-## License
+License
+-------
 
 The project uses [the MIT license](http://opensource.org/licenses/MIT):
 

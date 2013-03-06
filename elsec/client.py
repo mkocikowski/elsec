@@ -37,7 +37,7 @@ def _get_readline_history():
         if exc.errno == errno.ENOENT:
             elsec.output.output("No command history file found.")
         else:
-            logger.warning(exc)
+            logger.warning(exc, exc_info=True)
 
 
 def _save_readline_history():
@@ -45,8 +45,9 @@ def _save_readline_history():
         fn = os.path.join(os.path.expanduser("~"), ".elsec_history")
         readline.set_history_length(20)
         readline.write_history_file(fn)
+        logger.debug("Stored readline history to: %s" % (fn,))
     except IOError as exc:
-        logger.warning(exc)
+        logger.warning(exc, exc_info=True)
 
 
 def _configure_readline():
@@ -55,7 +56,7 @@ def _configure_readline():
     readline.parse_and_bind("tab: complete")
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")
-        logger.warning("Using libedit readline")
+        logger.debug("Using libedit readline")
     return
 
 
@@ -180,7 +181,7 @@ def main():
     
     """
     
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.WARNING)
 #     logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
     try:
@@ -207,17 +208,26 @@ def main():
 #     global dumps
 #     dumps = lambda x: json.dumps(x)
     
-    if args.flat:
-        elsec.output.FLAT = True
-    
     input_f = raw_input
     output_f = elsec.output.output
     prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
+
+    if args.flat:
+        elsec.output.FLAT = True
+        def input_f(x):
+            line = sys.stdin.readline()
+            if not line:
+                raise EOFError
+            return line
+        prompt_f = lambda: ""
+
     handler_f = functools.partial(elsec.parser.handle, args.host, args.index, output_f)
-    output_f("Type 'help' for help. Exit with Control-D. ")
+    if not args.flat:
+        output_f("Type 'help' for help. Exit with Control-D. ")
     input_loop(prompt_f, input_f, handler_f)
-    _save_readline_history()
-    output_f("Bye!")
+    if not args.flat: 
+        _save_readline_history()
+        output_f("Bye!")
     sys.exit(0)
 
 

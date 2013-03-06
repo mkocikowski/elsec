@@ -104,8 +104,8 @@ def do_view(host, index, docid):
         url = "http://%s/%s/%s/%s" % (host, index, _t, docid)
         curl = "curl -XGET '%s'" % (url, )
         status, reason, data = elsec.http.get(url)
-        if status == 200: 
-            yield (curl, json.loads(data))
+#         if status == 200: 
+        yield (curl, json.loads(data))
 
     return
 
