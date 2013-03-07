@@ -33,7 +33,8 @@ For the 'dev' release:
 
 Tutorial
 --------
-See the [project wiki.](https://github.com/mkocikowski/elsec/wiki)
+See the [project wiki](https://github.com/mkocikowski/elsec/wiki) 
+(which should be a copy of the TUTORIAL.md file)
 
 License
 -------
