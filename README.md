@@ -36,6 +36,11 @@ Tutorial
 See the [project wiki](https://github.com/mkocikowski/elsec/wiki) 
 (which should be a copy of the TUTORIAL.md file)
 
+Changes
+-------
+- 0.9.2 Basic vim edit capability, allowing users to edit requests without leaving the client
+- 0.9.1 Base functionality
+
 License
 -------
 
