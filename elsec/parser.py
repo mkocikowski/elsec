@@ -9,6 +9,7 @@ Functions:
 """
 
 
+import json
 import readline
 import logging
 
@@ -21,9 +22,10 @@ logger = logging.getLogger(__name__)
 completions = {
     'fields': [], 
     'hits': [], 
-    'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version'], 
+    'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version', 'edit'], 
 }
 
+request = None
 
 # http://www.doughellmann.com/PyMOTW/readline/
 #
@@ -78,17 +80,20 @@ def handle(host, index, output_f, line):
     """
 
     for _func, _args in _parse(line):
-        for request, response in _func(host, index, *_args):
+        for req, res in _func(host, index, *_args):
             try: 
-                _output(output_f, request, response)
+                _output(output_f, req, res)
                 # add document ids to autocomplete
-                if 'hits' in response:
-                    completions['hits'] = response['hits']['hits']
-            except:
-                print(_func)
+                if res and 'hits' in res.data:
+                    completions['hits'] = res.data['hits']['hits']
+                if req:
+                    global request
+                    request = req
+            except Exception:
+                logger.error(_func)
                 raise
 
-    return 
+    return
 
 
 def _parse(line):
@@ -114,14 +119,30 @@ def _parse(line):
 
     if command == 'search':
         _func = elsec.actions.do_search
-        _args = [" ".join(params),]
-        yield (_func, _args)
+        _args = None
+        if params:
+            _args = [" ".join(params),]
+        elif request:
+            _args = [json.dumps(request.request),]
+        if _args:
+            yield (_func, _args)
     
     elif command == 'count':
         _func = elsec.actions.do_count
-        _args = [" ".join(params),]
-        yield (_func, _args)
-                
+        _args = None
+        if params:
+            _args = [" ".join(params),]
+        elif request:
+            _args = [json.dumps(request.request),]
+        if _args:
+            yield (_func, _args)
+    
+    elif command == 'edit':
+        _func = elsec.actions.do_edit
+        if request:
+            _args = [request,]
+            yield (_func, _args)
+    
     elif command == 'view': 
         for p in params:
             _func = elsec.actions.do_view
@@ -156,7 +177,8 @@ def _output(output_f, request, response, separator=elsec.output.SEPARATOR):
         output_f(request.curl)
         output_f(separator)
 
-    output_f(response.data)
+    if response:
+        output_f(response.data)
 
     return
 

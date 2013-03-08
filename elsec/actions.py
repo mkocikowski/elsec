@@ -6,6 +6,8 @@ import json
 import logging
 import subprocess, shlex
 import collections
+import tempfile
+import time
 
 import elsec.http
 import elsec.templates
@@ -98,12 +100,52 @@ def do_count(host, index, query):
     curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(qqs))
     status, reason, data = elsec.http.post(url, json.dumps(qqs))
 
-    req = RequestT(url=url, method='POST', request=qqs, curl=curl)
+    req = RequestT(url=url, method='POST', request=request, curl=curl)
     res = ResponseT(status=status, data=json.loads(data))
 #     yield (curl, json.loads(data))
     yield (req, res)
     return
     
+
+def do_edit(host, index, req):
+    
+#     f = tempfile.NamedTemporaryFile()
+    with open("/tmp/elsecvim", "w") as f:
+        for line in json.dumps(req.request, indent=4, sort_keys=True).split("\n"):
+            f.write(line + "\n")
+    #         print((line, f.name))
+        f.flush()
+        
+    subprocess.call(["vim", "-n", "/tmp/elsecvim"])
+
+    with open("/tmp/elsecvim", "rU") as f:
+        edited = f.read()
+#     f.close()
+#     print(edited)
+    
+    try:
+#         edited = json.loads(edited)
+#         curl = "curl -XPOST '%s' -d '%s'" % (req.url, elsec.output.dumps(edited))
+# #         RequestT = collections.namedtuple('RequestT', ['url', 'method', 'request', 'curl'])
+#         request = RequestT(req.url, req.method, edited, curl)
+# #         print(request)
+#         yield (request, None)
+
+        if req.url.endswith("_search"):
+            for rr in do_search(host, index, edited):
+                yield rr
+        elif req.url.endswith("_count"):
+            for rr in do_count(host, index, edited):
+                yield rr
+
+
+    except ValueError as exc:
+#         logger.error(exc, exc_info=True)
+        logger.error("Error parsing JSON, reverting to the pre-edit version")
+        yield (req, None)
+    
+    return
+
 
 def do_view(host, index, docid):
 

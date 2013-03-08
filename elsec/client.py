@@ -37,7 +37,7 @@ def _get_readline_history():
         if exc.errno == errno.ENOENT:
             elsec.output.output("No command history file found.")
         else:
-            logger.warning(exc, exc_info=True)
+            logger.warning(exc, exc_info=False)
 
 
 def _save_readline_history():
@@ -144,6 +144,7 @@ def input_loop(prompt_f, input_f, handler_f):
             # 'search' and 'count' commands allow for multiline input,
             # terminated by ';', all other commands are single line.
             if buff.strip().split()[0].lower() not in ['search', 'count'] or \
+                    len(buff.strip().split()) == 1 or \
                     buff.strip().endswith(";"):
                 handler_f(buff.strip(" ;\n\r\t"))
                 buff = ""
