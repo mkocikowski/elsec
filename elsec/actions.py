@@ -5,6 +5,7 @@ import json
 # import traceback
 import logging
 import subprocess, shlex
+import collections
 
 import elsec.http
 import elsec.templates
@@ -14,6 +15,8 @@ import elsec.output
 
 logger = logging.getLogger(__name__)
 
+RequestT = collections.namedtuple('RequestT', ['url', 'method', 'request', 'curl'])
+ResponseT = collections.namedtuple('ResponseT', ['status', 'data'])
 
 def get_indices(host):
     url = "http://%s/_settings" % (host, )
@@ -73,7 +76,11 @@ def do_search(host, index, query):
 #         (url, json.dumps(request, indent=4, sort_keys=True))
     curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(request))
     status, reason, data = elsec.http.post(url, json.dumps(request))
-    yield (curl, json.loads(data))
+    
+    req = RequestT(url=url, method='POST', request=request, curl=curl)
+    res = ResponseT(status=status, data=json.loads(data))
+#     yield (curl, json.loads(data))
+    yield (req, res)
     return
     
 
@@ -90,7 +97,11 @@ def do_count(host, index, query):
 #         (url, json.dumps(qqs, indent=4, sort_keys=True))
     curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(qqs))
     status, reason, data = elsec.http.post(url, json.dumps(qqs))
-    yield (curl, json.loads(data))
+
+    req = RequestT(url=url, method='POST', request=qqs, curl=curl)
+    res = ResponseT(status=status, data=json.loads(data))
+#     yield (curl, json.loads(data))
+    yield (req, res)
     return
     
 
@@ -105,18 +116,22 @@ def do_view(host, index, docid):
         curl = "curl -XGET '%s'" % (url, )
         status, reason, data = elsec.http.get(url)
 #         if status == 200: 
-        yield (curl, json.loads(data))
+        req = RequestT(url=url, method='GET', request=None, curl=curl)
+        res = ResponseT(status=status, data=json.loads(data))
+#         yield (curl, json.loads(data))
+        yield (req, res)
 
     return
 
 
 def do_open(host, index, docid):
 
-    for curl, _ in do_view(host, index, docid):
-        url = curl.split()[2].strip(" '")
+    for req, _ in do_view(host, index, docid):
+        url = req.curl.split()[2].strip(" '")
         _command = "open %s" % (url, )
         rc = subprocess.call(shlex.split(_command.encode("utf-8")))
-        yield (None, curl)
+#         req = RequestT(url=url, method='GET', request=None, curl=curl)
+        res = ResponseT(status=status, data=json.loads(data))
+        yield (None, None)
         
-
     return

@@ -12,8 +12,9 @@ Functions:
 import readline
 import logging
 
-# import elsec.client
+import elsec.actions
 import elsec.help
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +78,15 @@ def handle(host, index, output_f, line):
     """
 
     for _func, _args in _parse(line):
-        for request, response in _func(host, index, *_args): 
-            _output(output_f, request, response)
-            # add document ids to autocomplete
-            if 'hits' in response:
-                completions['hits'] = response['hits']['hits']
+        for request, response in _func(host, index, *_args):
+            try: 
+                _output(output_f, request, response)
+                # add document ids to autocomplete
+                if 'hits' in response:
+                    completions['hits'] = response['hits']['hits']
+            except:
+                print(_func)
+                raise
 
     return 
 
@@ -131,12 +136,12 @@ def _parse(line):
     
     elif command == 'help':
         def _help(*args, **kwargs):
-            yield (None, elsec.help.OVERVIEW)
+            yield (None, elsec.actions.ResponseT(None, elsec.help.OVERVIEW))
         yield (_help, [])
     
     elif command == 'version':
         def _version(*args, **kwargs):
-            yield(None, elsec.__version__)
+            yield(None, elsec.actions.ResponseT(None, elsec.__version__))
         yield (_version, [])
         
     elif command == 'exit':
@@ -148,10 +153,10 @@ def _parse(line):
 def _output(output_f, request, response, separator=elsec.output.SEPARATOR):
 
     if request: 
-        output_f(request)
+        output_f(request.curl)
         output_f(separator)
 
-    output_f(response)
+    output_f(response.data)
 
     return
 

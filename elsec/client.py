@@ -103,28 +103,6 @@ def get_fieldnames(host, index):
     fields = [f[0] for f in _dot_collapse("", _temp)]
     return fields
 
-    
-# def dumps(data): 
-#     s = json.dumps(data, indent=4, sort_keys=True)
-#     return s
-
-
-# def output(data, fh=sys.stdout):
-#     """Output data, if it is not string, then serialized to JSON. 
-#     
-#     Input:
-#     - data: if str or unicode, output as is. If other, serialize to JSON
-#     - fh: file handle for output, defaults to sys.stdout
-#     
-#     """
-#     if type(data) in [str, unicode]:
-#         fh.write(data)
-#         fh.write("\n")
-#         return
-#     fh.write(elsec.output.dumps(data))
-#     fh.write("\n")
-#     return
-
 
 def get_args_parser():
     # the reason for the args parser to be defined in a separate function is
