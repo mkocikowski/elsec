@@ -21,6 +21,13 @@ This tool is not intended to be an admin interface, or a complex query
 builder. It is to be quick to learn and safe and easy to use, more of a spoon
 than a swiss army knife.
 
+Requirements
+------------
+Python 2.7; tested on OSX and on Linux (2.6), no plans to support Windows. On
+OSX, I highly recommend you install 'readline' (like you would for ipython),
+with 'easy_install readline'. Using the OSX standard 'libedit' will cause the
+command history to be intermittently lost between sessions. 
+
 Installation
 ------------
 For the current 'stable' release:
@@ -30,6 +37,11 @@ For the current 'stable' release:
 For the 'dev' release: 
 
     pip install https://github.com/mkocikowski/elsec/archive/dev.zip
+
+If you don't want to use pip (which is a nice python package manager /
+installer), you can download the source, cd to the directory which contains
+the 'setup.py' file, and run 'python setup.py install'. But I recommend using
+'pip'.
 
 Tutorial
 --------
