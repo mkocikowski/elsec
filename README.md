@@ -45,8 +45,7 @@ the 'setup.py' file, and run 'python setup.py install'. But I recommend using
 
 Tutorial
 --------
-See the [project wiki](https://github.com/mkocikowski/elsec/wiki) 
-(which should be a copy of the TUTORIAL.md file)
+See the 'TUTORIAL.md' file in the main project directory. 
 
 Changes
 -------
