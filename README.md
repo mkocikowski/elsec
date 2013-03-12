@@ -49,6 +49,7 @@ See the 'TUTORIAL.md' file in the main project directory.
 
 Changes
 -------
+- 0.9.3 'Vim edit' tested and documented, request history saved on exit and restored on startup, more tests, better documentation
 - 0.9.2 Basic vim edit capability, allowing users to edit requests without leaving the client
 - 0.9.1 Base functionality
 
