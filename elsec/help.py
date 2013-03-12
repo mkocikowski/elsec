@@ -17,5 +17,6 @@ http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html
 
 Don't worry, you won't break anything by using this tool! See full
 documentation, use examples, and a tutorial at: 
-https://github.com/mkocikowski/elsec/wiki
+https://github.com/mkocikowski/elsec/
+
 """

@@ -1,7 +1,7 @@
 Intro
 -----
 This is a tutorial on basic use of the tool. For installation instructions see
-the README on the [main project page.](https://github.com/mkocikowski/elsec/)
+the "README.md" file in the main project directory. 
 
 The goal of the project is to provide an easy to use, interactive command line
 (terminal) client to Elasticsearch, with behavior similar to 'mysql' or 'psql'
@@ -13,10 +13,9 @@ should be able to use the 'elsec' to look at data in an ES index.
 Preparation
 -----------
 This tutorial uses an Elasticserach (version >= 0.19.9) instance running on
-localhost. The setup commands are
-[here](https://github.com/mkocikowski/elsec/wiki/Server-setup), just copy and
-paste them in your terminal. This will create 2 indices, an alias, and put 5
-documents into the index. 
+localhost. Setup commands are in the "tutorial.sh" file in the main
+project directory, just copy and paste them in your terminal. This will create
+2 indices, an alias, and put 5 documents into the index. 
 
 Start
 -----
@@ -278,5 +277,133 @@ Again, you see the curl call first, and then the response. You can also use
 the 'open' command, which will try to display the document in your web browser
 (may or may not work).
 
-That's it. We'll be working on a graphical query builder. 
 
+Editing
+-------
+If you are comfortable using the VIM text editor, there is an 'easier'
+(relative to previous statement) way to modify your queries. Elsec always
+'remembers' the previous request, and you can edit that request and execute
+the modified request with the 'edit' command. Let's get a fresh start: 
+
+    localhost:9200/twitter/> search tweet.user:kimchy;
+
+The command above will execute a search (I'm omitting the response here), and
+'elsec' will remember that request. Now if you type just 'search' and hit
+enter, that request will be executed again (you could also do 'count'):
+
+    localhost:9200/twitter/> search 
+    curl -XPOST 'http://localhost:9200/twitter/_search' -d '{
+        "fields": [
+            "_id"
+        ], 
+        "from": 0, 
+        "query": {
+            "query_string": {
+                "default_field": "_all", 
+                "query": "tweet.user:kimchy"
+            }
+        }, 
+        "size": 10
+    }'
+    >
+    {
+        "_shards": {
+            "failed": 0, 
+            "successful": 1, 
+            "total": 1
+        }, 
+        "hits": {
+            "hits": [
+                {
+                    "_id": "1", 
+                    "_index": "elsec_test_index_1", 
+                    "_score": 1.5108256, 
+                    "_type": "tweet"
+                }, 
+                {
+                    "_id": "5", 
+                    "_index": "elsec_test_index_1", 
+                    "_score": 1.5108256, 
+                    "_type": "tweet"
+                }
+            ], 
+            "max_score": 1.5108256, 
+            "total": 2
+        }, 
+        "timed_out": false, 
+        "took": 1
+    }
+    localhost:9200/twitter/> 
+
+To modify the request, and to run the modified request, do 'edit'. I will not
+show the screen shots here, but the 'edit' command will open vim, with the
+request body open for editing. The file on which you will be modifying is
+called "/tmp/elsec"; the content of that file is what will get passed on as
+the body of the request when VIM exits. This means that you can edit the file,
+hit 'ZZ', and be done with it. But with a bit of VIM magic you can use
+template files, autocomplete, all kinds of magic: but this is up to you and
+your mad VIM skillz. 
+
+Let's just say I'll do edit and add the 'message' field to the response (I'm
+not showing the VIM session between the 'edit' command and the response). This
+is just like the 'copy and paste' example in the section above, but without
+having to do the 'copy and paste':
+
+    localhost:9200/twitter/> edit
+    curl -XPOST 'http://localhost:9200/twitter/_search' -d '{
+        "fields": [
+            "_id", 
+            "message"
+        ], 
+        "from": 0, 
+        "query": {
+            "query_string": {
+                "default_field": "_all", 
+                "query": "tweet.user:kimchy"
+            }
+        }, 
+        "size": 10
+    }'
+    >
+    {
+        "_shards": {
+            "failed": 0, 
+            "successful": 1, 
+            "total": 1
+        }, 
+        "hits": {
+            "hits": [
+                {
+                    "_id": "1", 
+                    "_index": "elsec_test_index_1", 
+                    "_score": 1.5108256, 
+                    "_type": "tweet", 
+                    "fields": {
+                        "message": "trying out Elastic Search 1"
+                    }
+                }, 
+                {
+                    "_id": "5", 
+                    "_index": "elsec_test_index_1", 
+                    "_score": 1.5108256, 
+                    "_type": "tweet", 
+                    "fields": {
+                        "message": "trying out Elastic Search 5"
+                    }
+                }
+            ], 
+            "max_score": 1.5108256, 
+            "total": 2
+        }, 
+        "timed_out": false, 
+        "took": 1
+    }
+    localhost:9200/twitter/> 
+
+When you exit 'elsec', the 'current' request gets saved to '~/.elsec_request',
+so when you start 'elsec' again, you can go with 'search' or 'edit' straight
+away. 
+
+Future
+------
+We'll be working on a graphical query builder. 

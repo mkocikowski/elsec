@@ -12,6 +12,7 @@ Functions:
 import json
 import readline
 import logging
+import os.path
 
 import elsec.actions
 import elsec.help
@@ -25,7 +26,31 @@ completions = {
     'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version', 'edit'], 
 }
 
+REQUEST_HISTORY_PATHNAME = os.path.join(os.path.expanduser("~"), ".elsec_request")
 request = None
+
+
+def save_request_history():
+    try: 
+        with open(REQUEST_HISTORY_PATHNAME, "w") as f:
+            f.write(json.dumps(request._asdict()))
+        logger.debug("Stored request history to: %s" % (REQUEST_HISTORY_PATHNAME, ))
+    except (IOError, AttributeError) as exc:
+        logger.debug(str(exc), exc_info=True)
+    return
+
+def read_request_history(): 
+    try: 
+        with open(REQUEST_HISTORY_PATHNAME, "rU") as f:
+            r = f.read()
+        r = json.loads(r)
+        global request
+        request = elsec.actions.RequestT(r['url'], r['method'], r['request'], r['curl'])
+        logger.debug("Read request history from: %s" % (REQUEST_HISTORY_PATHNAME, ))
+    except (IOError, AttributeError, ValueError) as exc:
+        logger.debug(str(exc), exc_info=True)
+    return
+
 
 # http://www.doughellmann.com/PyMOTW/readline/
 #

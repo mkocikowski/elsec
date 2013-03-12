@@ -33,6 +33,7 @@ def _get_readline_history():
     try: 
         fn = os.path.join(os.path.expanduser("~"), ".elsec_history")
         readline.read_history_file(fn)
+        logger.debug("Read readline history from: %s" % (fn,))
     except IOError as exc:
         if exc.errno == errno.ENOENT:
             elsec.output.output("No command history file found.")
@@ -161,6 +162,7 @@ def main():
     """
     
     logging.basicConfig(level=logging.WARNING)
+#     logging.basicConfig(level=logging.DEBUG)
 #     logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
     try:
@@ -175,6 +177,7 @@ def main():
         # this is ugly, but readline seems to rely on globals
         elsec.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
         _configure_readline()
+        elsec.parser.read_request_history()
 
     except (TypeError, ValueError):
         logger.error("Error initializing, check your connection parameters.", exc_info=True)
@@ -183,9 +186,6 @@ def main():
     except IOError:
         logger.error("IO (network) error, check your connection parameters.", exc_info=True)
         sys.exit(1)
-    
-#     global dumps
-#     dumps = lambda x: json.dumps(x)
     
     input_f = raw_input
     output_f = elsec.output.output
@@ -206,6 +206,7 @@ def main():
     input_loop(prompt_f, input_f, handler_f)
     if not args.flat: 
         _save_readline_history()
+        elsec.parser.save_request_history()
         output_f("Bye!")
     sys.exit(0)
 
