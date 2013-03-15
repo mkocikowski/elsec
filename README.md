@@ -47,6 +47,18 @@ Tutorial
 --------
 See the 'TUTORIAL.md' file in the main project directory. 
 
+Bugs / suggestions
+------------------
+Please submit bugs and suggestions to [issues](https://github.com/mkocikowski/elsec/issues) project page.
+
+Contribute?
+-----------
+The project is on github - of course I'd like people to get involved. This
+said, I'd like to keep the tool simple, focused in its purpose, and general in
+its application. I don't see the need for it to grow without end, adding more
+and more functionality, options, themes, etc. Keep it simple, up to date, try
+to perfect it. 
+
 Changes
 -------
 - 0.9.3 'Vim edit' tested and documented, request history saved on exit and restored on startup, more tests, better documentation
