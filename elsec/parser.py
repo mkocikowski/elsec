@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 completions = {
     'fields': [], 
     'hits': [], 
-    'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version', 'edit'], 
+    'commands': ['search', 'count', 'view', 'open', 'exit', 'help', 'version', 'edit', 'flat'], 
 }
 
 REQUEST_HISTORY_PATHNAME = os.path.join(os.path.expanduser("~"), ".elsec_request")
@@ -164,6 +164,12 @@ def _parse(line):
     
     elif command == 'edit':
         _func = elsec.actions.do_edit
+        if request:
+            _args = [request,]
+            yield (_func, _args)
+
+    elif command == 'flat':
+        _func = elsec.actions.do_flat
         if request:
             _args = [request,]
             yield (_func, _args)

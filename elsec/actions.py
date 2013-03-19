@@ -69,6 +69,19 @@ def _prepare_request(query):
     return request
 
 
+def _execute_request(host, index, request):
+
+    if request.url.endswith("_search"):
+        for rr in do_search(host, index, json.dumps(request.request)):
+            yield rr
+    elif request.url.endswith("_count"):
+        for rr in do_count(host, index, json.dumps(request.request)):
+            yield rr
+
+    return
+
+
+
 def do_search(host, index, query): 
     request = _prepare_request(query)
     url = "http://%s/%s/_search" % (host, index)
@@ -97,28 +110,55 @@ def do_count(host, index, query):
     return
     
 
-def do_edit(host, index, req):
+def do_edit(host, index, creq):
 
     with open("/tmp/elsec", "w") as f:
-        for line in json.dumps(req.request, indent=4, sort_keys=True).split("\n"):
+        for line in json.dumps(creq.request, indent=4, sort_keys=True).split("\n"):
             f.write(line + "\n")
     subprocess.call(["vim", "-n", "/tmp/elsec"])
     with open("/tmp/elsec", "rU") as f:
         edited = f.read()
         
     try:
-        if req.url.endswith("_search"):
-            for rr in do_search(host, index, edited):
-                yield rr
-        elif req.url.endswith("_count"):
-            for rr in do_count(host, index, edited):
-                yield rr
+#         if req.url.endswith("_search"):
+#             for rr in do_search(host, index, edited):
+#                 yield rr
+#         elif req.url.endswith("_count"):
+#             for rr in do_count(host, index, edited):
+#                 yield rr
+        nreq = RequestT(creq.url, creq.method, json.loads(edited), creq.curl)
+        for rr in _execute_request(host, index, nreq):
+            yield rr
 
     except ValueError:
         logger.error("Error parsing JSON, reverting to the pre-edit version")
-        yield (req, None)    
+        yield (creq, None)    
 
     return
+
+
+def do_flat(host, index, creq): 
+
+    tmp = elsec.output.FLAT
+    try:
+        elsec.output.FLAT = True
+        
+#         if req.url.endswith("_search"):
+#             for rr in do_search(host, index, json.dumps(req.request)):
+#                 yield rr
+#         elif req.url.endswith("_count"):
+#             for rr in do_count(host, index, json.dumps(req.request)):
+#                 yield rr
+
+        for rr in _execute_request(host, index, creq):
+            yield rr
+
+
+    finally:
+        elsec.output.FLAT = tmp
+
+    return
+    
 
 
 def do_view(host, index, docid):
