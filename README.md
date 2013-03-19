@@ -51,19 +51,19 @@ Bugs / suggestions
 ------------------
 Please submit bugs and suggestions to [issues](https://github.com/mkocikowski/elsec/issues) project page.
 
-Contribute?
------------
-The project is on github - of course I'd like people to get involved. This
-said, I'd like to keep the tool simple, focused in its purpose, and general in
-its application. I don't see the need for it to grow without end, adding more
-and more functionality, options, themes, etc. Keep it simple, up to date, try
-to perfect it. 
-
 Changes
 -------
-- 0.9.3 'Vim edit' tested and documented, request history saved on exit and restored on startup, more tests, better documentation
-- 0.9.2 Basic vim edit capability, allowing users to edit requests without leaving the client
-- 0.9.1 Base functionality
+- 0.9.4 (2013-03-19) Issues #1 ('flat' command) and #2 (request timeouts, Sushant Shankar) addressed
+- 0.9.3 (2013-03-12) 'Vim edit' (Alexander Scammon) tested and documented, request history saved on exit and restored on startup, more tests, better documentation
+- 0.9.2 (2013-03-10) Basic vim edit capability, allowing users to edit requests without leaving the client
+- 0.9.1 (2013-03-06) Base functionality
+
+Contribute
+----------
+The project is on github - of course I'd like people to get involved.
+This said, I'd like to keep the tool simple, focused in its purpose, and
+general in its application. Keep it simple, up to date, try to perfect
+it. 
 
 License
 -------

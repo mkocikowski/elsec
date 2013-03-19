@@ -3,6 +3,8 @@
 import urlparse
 import httplib
 
+DEFAULT_TIMEOUT = None
+
 def _validate_url(url):
     p = urlparse.urlsplit(url)
     if p.scheme != 'http': 
@@ -14,7 +16,7 @@ def _validate_url(url):
     return host, path
 
 
-def get(url, timeout=20):
+def get(url, timeout=DEFAULT_TIMEOUT):
     host, path = _validate_url(url)
     conn = httplib.HTTPConnection(host, timeout=timeout)
     conn.request('GET', path, body=None)
@@ -24,7 +26,7 @@ def get(url, timeout=20):
     return resp.status, resp.reason, data
 
 
-def put(url, data, timeout=20):
+def put(url, data, timeout=DEFAULT_TIMEOUT):
     host, path = _validate_url(url)
     conn = httplib.HTTPConnection(host, timeout=timeout)
     head = {'Content-type': 'application/json'}
@@ -35,7 +37,7 @@ def put(url, data, timeout=20):
     return resp.status, resp.reason, data
 
 
-def post(url, data, timeout=20):
+def post(url, data, timeout=DEFAULT_TIMEOUT):
     host, path = _validate_url(url)
     conn = httplib.HTTPConnection(host, timeout=timeout)
     head = {'Content-type': 'application/json'}
@@ -46,7 +48,7 @@ def post(url, data, timeout=20):
     return resp.status, resp.reason, data
 
 
-def delete(url, timeout=20):
+def delete(url, timeout=DEFAULT_TIMEOUT):
     host, path = _validate_url(url)
     conn = httplib.HTTPConnection(host, timeout=timeout)
     conn.request('DELETE', path, body=None)

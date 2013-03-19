@@ -1,12 +1,20 @@
 # -*- coding: utf-8 -*-
 
+"""Functions that 'do' things.
+
+These get called by the parser, in response to user input. All this will
+have to be refactored at some point: as the program evolved and its
+purpose became more focused, it became clear that the focal point of
+'everything' is a request, and so all this will be rewritten around the
+request, not the action. 
+
+"""
+
 import copy
 import json
 import logging
 import subprocess, shlex
 import collections
-# import tempfile
-# import time
 
 import elsec.http
 import elsec.templates
@@ -70,6 +78,10 @@ def _prepare_request(query):
 
 
 def _execute_request(host, index, request):
+    """Run do_search or do_count depending on request URL."""
+    
+    # This is idiotic, RequestT should contain information on what type
+    # of request this is, it should not be inferred from the URL. 
 
     if request.url.endswith("_search"):
         for rr in do_search(host, index, json.dumps(request.request)):
@@ -81,36 +93,50 @@ def _execute_request(host, index, request):
     return
 
 
-
 def do_search(host, index, query): 
-    request = _prepare_request(query)
-    url = "http://%s/%s/_search" % (host, index)
-    curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(request))
-    status, reason, data = elsec.http.post(url, json.dumps(request))    
-    req = RequestT(url=url, method='POST', request=request, curl=curl)
-    res = ResponseT(status=status, data=json.loads(data))
-    yield (req, res)
+    """Execute a search request, yield result."""
+
+    try:
+        request = _prepare_request(query)
+        url = "http://%s/%s/_search" % (host, index)
+        curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(request))
+        status, reason, data = elsec.http.post(url, json.dumps(request))    
+        req = RequestT(url=url, method='POST', request=request, curl=curl)
+        res = ResponseT(status=status, data=json.loads(data))
+        yield (req, res)
+
+    except KeyboardInterrupt:
+        logger.debug("Search request interrupted with KeyboardInterrupt")
+
     return
     
 
 def do_count(host, index, query): 
-    request = _prepare_request(query)
-    if 'query' in request:
-        qqs = request['query']
-    else:
-        # let's hope for the best, if the request is bum, we'll get an
-        # error from the ES
-        qqs = request
-    url = "http://%s/%s/_count" % (host, index)
-    curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(qqs))
-    status, reason, data = elsec.http.post(url, json.dumps(qqs))
-    req = RequestT(url=url, method='POST', request=request, curl=curl)
-    res = ResponseT(status=status, data=json.loads(data))
-    yield (req, res)
+    """Execute a count request, yield result."""
+
+    try: 
+        request = _prepare_request(query)
+        if 'query' in request:
+            qqs = request['query']
+        else:
+            # let's hope for the best, if the request is bum, we'll get an
+            # error from the ES
+            qqs = request
+        url = "http://%s/%s/_count" % (host, index)
+        curl = "curl -XPOST '%s' -d '%s'" % (url, elsec.output.dumps(qqs))
+        status, reason, data = elsec.http.post(url, json.dumps(qqs))
+        req = RequestT(url=url, method='POST', request=request, curl=curl)
+        res = ResponseT(status=status, data=json.loads(data))
+        yield (req, res)
+
+    except KeyboardInterrupt:
+        logger.debug("Count request interrupted with KeyboardInterrupt")
+
     return
     
 
 def do_edit(host, index, creq):
+    """Edit the most recent request with vim, execute."""
 
     with open("/tmp/elsec", "w") as f:
         for line in json.dumps(creq.request, indent=4, sort_keys=True).split("\n"):
@@ -120,12 +146,6 @@ def do_edit(host, index, creq):
         edited = f.read()
         
     try:
-#         if req.url.endswith("_search"):
-#             for rr in do_search(host, index, edited):
-#                 yield rr
-#         elif req.url.endswith("_count"):
-#             for rr in do_count(host, index, edited):
-#                 yield rr
         nreq = RequestT(creq.url, creq.method, json.loads(edited), creq.curl)
         for rr in _execute_request(host, index, nreq):
             yield rr
@@ -138,21 +158,13 @@ def do_edit(host, index, creq):
 
 
 def do_flat(host, index, creq): 
+    """Re-run the most recent request, output in one line."""
 
     tmp = elsec.output.FLAT
     try:
         elsec.output.FLAT = True
-        
-#         if req.url.endswith("_search"):
-#             for rr in do_search(host, index, json.dumps(req.request)):
-#                 yield rr
-#         elif req.url.endswith("_count"):
-#             for rr in do_count(host, index, json.dumps(req.request)):
-#                 yield rr
-
         for rr in _execute_request(host, index, creq):
             yield rr
-
 
     finally:
         elsec.output.FLAT = tmp
@@ -162,6 +174,7 @@ def do_flat(host, index, creq):
 
 
 def do_view(host, index, docid):
+    """Pull document from elasticsearch, display."""
 
     types = set()
     for _m in get_mappings(host, index).values():
@@ -179,6 +192,7 @@ def do_view(host, index, docid):
 
 
 def do_open(host, index, docid):
+    """Open document in a web browser."""
 
     for req, _ in do_view(host, index, docid):
         url = req.curl.split()[2].strip(" '")
