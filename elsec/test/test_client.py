@@ -5,6 +5,7 @@ import argparse
 import functools
 import StringIO
 # import time
+import json
 
 import elsec.client
 import elsec.output
@@ -89,6 +90,16 @@ class ClientTest(unittest.TestCase):
             
         with self.assertRaises(IOError):
             result = elsec.client.get_fieldnames('XXX', 'elsec_test_index_1')
+    
+    
+    def test_collapse_mapping(self):
+    
+        # this mapping includes a multi field (doc.keywords.data/data.raw)
+        s = """{"doc": {"_size": {"enabled": true, "store": "yes"}, "_source": {"enabled": true}, "properties": {"body": {"dynamic": true, "properties": {"data": {"dynamic": true, "properties": {"txt": {"dynamic": true, "properties": {"body": {"type": "string"}, "body_size": {"null_value": 0, "type": "integer"}}}}}}}, "keywords": {"dynamic": "true", "properties": {"count": {"ignore_malformed": false, "type": "short"}, "data": {"fields": {"data": {"type": "string"}, "raw": {"include_in_all": false, "index": "not_analyzed", "type": "string"}}, "path": "full", "type": "multi_field"}}}}}}"""
+        m = json.loads(s)
+        l = elsec.client._collapse_mapping(m)
+        self.assertEqual(l, [u'doc.body.data.txt.body', u'doc.body.data.txt.body_size', u'doc.keywords.count', u'doc.keywords.data.raw', u'doc.keywords.data'])
+
     
     
     def test_input_loop(self):

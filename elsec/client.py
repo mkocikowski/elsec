@@ -61,6 +61,30 @@ def _configure_readline():
     return
 
 
+def _collapse_mapping(element, path="", skip=None): 
+
+    if not skip:
+        skip = []
+
+    if "properties" in element:
+        return _collapse_mapping(element['properties'], path)
+
+    elif "fields" in element: 
+        res = _collapse_mapping(element['fields'], path, skip=[path.rsplit(".", 1)[1]])
+        res.extend([path])
+        return res
+
+    elif "type" in element:
+        return [path]
+
+    else:
+        res = []
+        for field in element:
+            if field in skip: continue
+            res.extend(_collapse_mapping(element[field], "%s.%s" % (path, field) if path else field))
+        return res
+
+
 def get_fieldnames(host, index): 
     """Return a list of names of all fields in mappings for the index.
     
@@ -80,17 +104,22 @@ def get_fieldnames(host, index):
     
     """
     
-    def _dot_collapse(pre, d): 
-        for k in d.keys():
-            try: 
-                ps = "%s.%s" % (pre, k) if pre else k
-                for f in _dot_collapse(ps, d[k]['properties']): 
-                    yield f
-            except KeyError:
-                yield ("%s.%s" % (pre, k), d[k]['type'])
-    
+#     def _dot_collapse(pre, d): 
+#         for k in d.keys():
+#             try: 
+#                 ps = "%s.%s" % (pre, k) if pre else k
+#                 for f in _dot_collapse(ps, d[k]['properties']): 
+#                     yield f
+# #                 for f in _dot_collapse(ps, d[k]['fields']): 
+# #                     yield f
+#             except KeyError:
+#                 yield ("%s.%s" % (pre, k), d[k]['type'])
+# #                 yield ("%s.%s" % (pre, k), 'x')
+# #                 yield ("foo.bar")
+#     
+
     mappings = elsec.actions.get_mappings(host, index)
-            
+    
     # the _mapping call returns a dictionary where keys are index names,
     # and values are dictionaries where keys are mapping names and
     # values are mappings. So if we are doing with a single index, it is
@@ -101,8 +130,10 @@ def get_fieldnames(host, index):
     for m in mappings.values():
         _temp.update(m)
         
-    fields = [f[0] for f in _dot_collapse("", _temp)]
-    return fields
+#     fields = [f[0] for f in _dot_collapse("", _temp)]
+#     return fields
+    
+    return _collapse_mapping(_temp)
 
 
 def get_args_parser():
