@@ -111,7 +111,7 @@ def handle(host, index, output_f, line):
                 # add document ids to autocomplete
                 if res and 'hits' in res.data:
                     completions['hits'] = res.data['hits']['hits']
-                if req:
+                if req and req.request: # don't remember 'view' and 'open' requests
                     global request
                     request = req
             except Exception:
