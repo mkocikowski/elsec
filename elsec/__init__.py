@@ -18,4 +18,4 @@ tests to run there needs to be an Elasticsearch server running on localhost.
 """
 
 
-__version__ = "0.9.6"
+__version__ = "1.0.1"

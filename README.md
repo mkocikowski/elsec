@@ -53,6 +53,7 @@ Please submit bugs and suggestions to [issues](https://github.com/mkocikowski/el
 
 Changes
 -------
+- 1.0.1 (2013-04-26) Public release. 
 - 0.9.6 (2013-03-27) Issue #6 (bug, 'view' setting request to 'none')
 - 0.9.5 (2013-03-22) Issue #3 (proper tab completion for multi fields)
 - 0.9.4 (2013-03-19) Issues #1 ('flat' command) and #2 (request timeouts, Sushant Shankar) addressed

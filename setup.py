@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # python setup.py -r http://testpypi.python.org/pypi register
-# python setup.py sdist upload -r http://testpypi.python.org/pypi
+# python setup.py sdist upload -r http://pypi.python.org/pypi
 
 from setuptools import setup
 
@@ -17,7 +17,7 @@ mysql client to dig around a mysql database should be able to use the
 
 setup(
     name = 'elsec', 
-    version = '0.9.6', 
+    version = '1.0.1', 
     author = 'Mik Kocikowski', 
     author_email = 'mkocikowski@gmail.com', 
     url = 'https://github.com/mkocikowski/elsec', 

@@ -3,8 +3,7 @@
 import elsec.parser
 
 OVERVIEW = """
-Overview
---------
+Relax, you can't break anything with this tool!
 
 Press TAB twice to see available commands. Press TAB while entering a 'search'
 or 'count' command to complete a field name. Press TAB when entering a 'view'
