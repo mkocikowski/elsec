@@ -12,6 +12,12 @@ class ActionsTest(unittest.TestCase):
         elsec.test.fixture.delete()
         elsec.test.fixture.create()
         logging.debug("Set up ES fixtures.")
+
+
+    @classmethod
+    def tearDownClass(cls): 
+        elsec.test.fixture.delete()
+        logging.debug("Tore down ES fixtures.")
         
 
     def test_search(self):

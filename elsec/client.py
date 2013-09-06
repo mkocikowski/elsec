@@ -139,10 +139,17 @@ def get_fieldnames(host, index):
 def get_args_parser():
     # the reason for the args parser to be defined in a separate function is
     # that it makes it easy to test it.
-    parser = argparse.ArgumentParser(description="ElasticSearch client.")
+    epilog = """
+Running 'elsec' with no parameters will display indices and aliases available
+on the default host:port (localhost:9200). For project info and tutorial see:
+'https://github.com/mkocikowski/elsec' 
+"""
+    parser = argparse.ArgumentParser(description="ElasticSearch client (%s)" % (elsec.__version__, ), epilog=epilog, add_help=False)
     parser.add_argument('-v', '--version', action='version', version=elsec.__version__)
-    parser.add_argument('host', type=str, help="elasticsearch server address, including port")
-    parser.add_argument('index', type=str, nargs="?", help="name of the index")
+    parser.add_argument('--help', action='help', help='show help and exit')
+    parser.add_argument('-h', '--host', type=str, default='localhost', help="server host (default: %(default)s)")
+    parser.add_argument('-p', '--port', type=int, default=9200, help="server port (default: %(default)i)")
+    parser.add_argument('index', type=str, nargs="?", help="name of the index to access, required")
     parser.add_argument('--flat', action='store_true', help="if set, show requests and responses in single lines")
     return parser
 
@@ -197,30 +204,35 @@ def main():
 #     logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
     try:
-        args = get_args_parser().parse_args()
+        parser = get_args_parser()
+        args = parser.parse_args()
+        server = "%s:%i" % (args.host, args.port)
         # if no index name provided on invocation, look up all indices and
         # aliases, display them, and exit
         if not args.index:
-            indices = elsec.actions.get_indices(args.host)
-            aliases = elsec.actions.get_aliases(args.host)
-            elsec.output.output("Indices: %s, aliases: %s" % (sorted(indices), sorted(aliases)))
+            indices = elsec.actions.get_indices(server)
+            aliases = elsec.actions.get_aliases(server)
+            elsec.output.output("\n%s" % parser.format_help())
+            elsec.output.output("-------------------------------------")
+            elsec.output.output("Server '%s' has the following indices and aliases available: " % (server, ))            
+            elsec.output.output("INDICES: [%s] ALIASES: [%s]\n" % (", ".join(sorted(indices)), ", ".join(sorted(aliases))))
             sys.exit(0)
         # this is ugly, but readline seems to rely on globals
-        elsec.parser.completions['fields'] = sorted(get_fieldnames(args.host, args.index))
+        elsec.parser.completions['fields'] = sorted(get_fieldnames(server, args.index))
         _configure_readline()
         elsec.parser.read_request_history()
 
     except (TypeError, ValueError):
-        logger.error("Error initializing, check your connection parameters.", exc_info=True)
+        logger.error("Error initializing, check your connection parameters (host=%s, port=%i, index=%s). Type 'elsec --help' for help." % (args.host, args.port, args.index), exc_info=False)
         sys.exit(1)
 
     except IOError:
-        logger.error("IO (network) error, check your connection parameters.", exc_info=True)
+        logger.error("IO (network) error, check your connection parameters (host=%s, port=%i, index=%s). Type 'elsec --help' for help." % (args.host, args.port, args.index), exc_info=False)
         sys.exit(1)
     
     input_f = raw_input
     output_f = elsec.output.output
-    prompt_f = lambda: "%s/%s/> " % (args.host, args.index)
+    prompt_f = lambda: "%s/%s/> " % (server, args.index)
 
     if args.flat:
         elsec.output.FLAT = True
@@ -231,7 +243,7 @@ def main():
             return line
         prompt_f = lambda: ""
 
-    handler_f = functools.partial(elsec.parser.handle, args.host, args.index, output_f)
+    handler_f = functools.partial(elsec.parser.handle, server, args.index, output_f)
     if not args.flat:
         output_f("Type 'help' for help. Exit with Control-D. ")
     input_loop(prompt_f, input_f, handler_f)

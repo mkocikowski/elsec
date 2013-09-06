@@ -35,15 +35,24 @@ class ClientTest(unittest.TestCase):
         elsec.test.fixture.create()
         logging.debug("Set up ES fixtures.")
         
+
+    @classmethod
+    def tearDownClass(cls): 
+        elsec.test.fixture.delete()
+        logging.debug("Tore down ES fixtures.")
+
     
     def test_argparse(self):    
         parser = elsec.client.get_args_parser()
+        # test default parameters
+        args = parser.parse_args("".split(" "))
+        self.assertEqual(args, argparse.Namespace(host='localhost', port=9200, index='', flat=False))
+        # test default parameters with 'index_1'        
+        args = parser.parse_args("index_1".split(" "))
+        self.assertEqual(args, argparse.Namespace(host='localhost', port=9200, index='index_1', flat=False))        
         # test with correct parameters
-        args = parser.parse_args("localhost:9200 index_1".split(" "))
-        self.assertEqual(args, argparse.Namespace(host='localhost:9200', index='index_1', flat=False))
-        # test errors 
-        with self.assertRaises(SystemExit): 
-            args = parser.parse_args([])
+        args = parser.parse_args("-h foohost -p 9300 index_1".split(" "))
+        self.assertEqual(args, argparse.Namespace(host='foohost', port=9300, index='index_1', flat=False))
 
 
 #     def test_output(self):
