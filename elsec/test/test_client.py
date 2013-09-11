@@ -28,6 +28,9 @@ def _input(lines):
 
 
 class ClientTest(unittest.TestCase):
+
+#     def setUp(self): 
+#         reload(elsec.client)
     
     @classmethod
     def setUpClass(cls):
@@ -110,7 +113,6 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(l, [u'doc.body.data.txt.body', u'doc.body.data.txt.body_size', u'doc.keywords.count', u'doc.keywords.data.raw', u'doc.keywords.data'])
 
     
-    
     def test_input_loop(self):
         
         # this parser will store incoming lines into _lines, so that they can
@@ -132,6 +134,34 @@ class ClientTest(unittest.TestCase):
         elsec.client.input_loop(lambda: "", in_f, parser_f)
         self.assertEqual(parser_l, [('first',), ('search multi line',), ('last',)])
 
+
+    def test_main(self): 
+
+        # 'dry run' - no CLI arguments
+        with self.assertRaises(SystemExit) as c:
+            elsec.client.main([], input_f=None, output_f=lambda x: True, loop_f=None)
+        self.assertEqual(c.exception.code, 0)
+        
+        # 'correct' - single CLI argument naming valid index
+        with self.assertRaises(SystemExit) as c:
+            elsec.client.main(['elsec_test_index_1'], input_f=None, output_f=lambda x: True, loop_f=lambda x,y,z: True)
+        self.assertEqual(c.exception.code, 0)
+
+        # 'correct' - single CLI argument naming valid index, and explicit naming of host and port
+        with self.assertRaises(SystemExit) as c:
+            elsec.client.main(['elsec_test_index_1', '-h', 'localhost', '-p', '9200'], input_f=None, output_f=lambda x: True, loop_f=lambda x,y,z: True)
+        self.assertEqual(c.exception.code, 0)
+
+        # 'incorrect' - invalid port
+        with self.assertRaises(SystemExit) as c:
+            elsec.client.main(['elsec_test_index_1', '-h', 'localhost', '-p', '9999'], input_f=None, output_f=lambda x: True, loop_f=lambda x,y,z: True)
+        self.assertEqual(c.exception.code, 2)
+
+        # 'incorrect' - single CLI argument naming valid index / valid doctype
+        with self.assertRaises(SystemExit) as c:
+            elsec.client.main(['elsec_test_index_1/doctype_1'], input_f=None, output_f=lambda x: True, loop_f=lambda x,y,z: True)
+        self.assertEqual(c.exception.code, 1)
+    
 
     def test_parser(self):
 

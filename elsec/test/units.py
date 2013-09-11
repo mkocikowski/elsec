@@ -10,7 +10,7 @@ def suite():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.CRITICAL)
     tests = suite()
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(tests)

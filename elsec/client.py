@@ -192,7 +192,7 @@ def input_loop(prompt_f, input_f, handler_f):
         return
 
 
-def main():
+def main(args=None, input_f=None, output_f=None, loop_f=None):
     """Do the basic setup, configure readline, and enter the input loop. 
     
     On exit(0) saves the readline history. On errors exits with exit(1).
@@ -203,9 +203,13 @@ def main():
 #     logging.basicConfig(level=logging.DEBUG)
 #     logging.basicConfig(filename="esc.log", level=logging.DEBUG)
 
+    input_f = input_f if input_f else raw_input
+    output_f = output_f if output_f else elsec.output.output
+    loop_f = loop_f if loop_f else input_loop
+
     try:
         parser = get_args_parser()
-        args = parser.parse_args()
+        args = parser.parse_args(args)
         server = "%s:%i" % (args.host, args.port)
 
         indices = elsec.actions.get_indices(server)
@@ -214,10 +218,10 @@ def main():
         # if no index name provided on invocation, display available indices
         # and aliases and exit
         if not args.index:
-            elsec.output.output("\n%s" % parser.format_help())
-            elsec.output.output("-------------------------------------")
-            elsec.output.output("Server '%s' has the following indices and aliases available: " % (server, ))            
-            elsec.output.output("INDICES: [%s] ALIASES: [%s]\n" % (", ".join(sorted(indices)), ", ".join(sorted(aliases))))
+            output_f("\n%s" % parser.format_help())
+            output_f("-------------------------------------")
+            output_f("Server '%s' has the following indices and aliases available: " % (server, ))            
+            output_f("INDICES: [%s] ALIASES: [%s]\n" % (", ".join(sorted(indices)), ", ".join(sorted(aliases))))
             sys.exit(0)
         
         # validate that 'index' command line argument is one of existing
@@ -237,10 +241,10 @@ def main():
 
     except IOError:
         logger.error("IO (network) error, check your connection parameters (host=%s, port=%i, index=%s). Type 'elsec --help' for help." % (args.host, args.port, args.index), exc_info=False)
-        sys.exit(1)
+        sys.exit(2)
     
-    input_f = raw_input
-    output_f = elsec.output.output
+#     input_f = raw_input
+#     output_f = elsec.output.output
     prompt_f = lambda: "%s/%s/> " % (server, args.index)
 
     if args.flat:
@@ -255,7 +259,7 @@ def main():
     handler_f = functools.partial(elsec.parser.handle, server, args.index, output_f)
     if not args.flat:
         output_f("Type 'help' for help. Exit with Control-D. ")
-    input_loop(prompt_f, input_f, handler_f)
+    loop_f(prompt_f, input_f, handler_f)
     if not args.flat: 
         _save_readline_history()
         elsec.parser.save_request_history()
@@ -264,6 +268,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
-
+    main(sys.argv)
