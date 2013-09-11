@@ -17,7 +17,7 @@ mysql client to dig around a mysql database should be able to use the
 
 setup(
     name = 'elsec', 
-    version = '1.0.2', 
+    version = '1.0.3', 
     author = 'Mik Kocikowski', 
     author_email = 'mkocikowski@gmail.com', 
     url = 'https://github.com/mkocikowski/elsec', 

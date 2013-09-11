@@ -207,16 +207,25 @@ def main():
         parser = get_args_parser()
         args = parser.parse_args()
         server = "%s:%i" % (args.host, args.port)
-        # if no index name provided on invocation, look up all indices and
-        # aliases, display them, and exit
+
+        indices = elsec.actions.get_indices(server)
+        aliases = elsec.actions.get_aliases(server)
+
+        # if no index name provided on invocation, display available indices
+        # and aliases and exit
         if not args.index:
-            indices = elsec.actions.get_indices(server)
-            aliases = elsec.actions.get_aliases(server)
             elsec.output.output("\n%s" % parser.format_help())
             elsec.output.output("-------------------------------------")
             elsec.output.output("Server '%s' has the following indices and aliases available: " % (server, ))            
             elsec.output.output("INDICES: [%s] ALIASES: [%s]\n" % (", ".join(sorted(indices)), ", ".join(sorted(aliases))))
             sys.exit(0)
+        
+        # validate that 'index' command line argument is one of existing
+        # indices or aliases
+        if args.index not in set(indices + list(aliases)): 
+            logger.error("Invalid 'index' command line parameter '%s'. It must be one of: %s" % (args.index, ", ".join(set(indices + list(aliases)))))
+            raise ValueError("invalid 'index' command line parameter")
+        
         # this is ugly, but readline seems to rely on globals
         elsec.parser.completions['fields'] = sorted(get_fieldnames(server, args.index))
         _configure_readline()
