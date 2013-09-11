@@ -53,6 +53,7 @@ Please submit bugs and suggestions to [issues](https://github.com/mkocikowski/el
 
 Changes
 -------
+- 1.0.3 (2013-09-11) Issue #9, improved command line args sanitation.
 - 1.0.2 (2013-09-05) Issue #8, -h/--host and -p/--port args, better help.
 - 1.0.1 (2013-04-26) Public release. 
 - 0.9.6 (2013-03-27) Issue #6 (bug, 'view' setting request to 'none')
